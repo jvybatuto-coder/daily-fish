@@ -72,6 +72,66 @@
         {% endif %}
     </div>
 
+    <!-- New Products Section -->
+    <div class="new-products-section">
+        <div class="section-header">
+            <h2 class="section-title">New Products</h2>
+            <p class="section-subtitle">Fresh catches from our sellers (last 7 days)</p>
+        </div>
+        
+        {% if new_products %}
+            <div class="products-grid">
+                {% for fish in new_products %}
+                    <a href="{% url 'fish_detail' fish.id %}" class="product-card">
+                        <div class="product-image">
+                            {% if fish.image %}
+                                <img src="{{ fish.image.url }}" alt="{{ fish.name }}">
+                            {% elif fish.image_url %}
+                                <img src="{{ fish.image_url }}" alt="{{ fish.name }}">
+                            {% else %}
+                                <div class="placeholder-image">
+                                    <i class="fas fa-fish"></i>
+                                </div>
+                            {% endif %}
+                            
+                            {% if fish.created_at|timesince == "0 minutes" or fish.created_at|timesince == "0 hours" %}
+                                <span class="new-badge">NEW</span>
+                            {% endif %}
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">{{ fish.name }}</h3>
+                            <p class="product-category">{{ fish.category.name }}</p>
+                            <div class="product-price">
+                                <span class="price">₱{{ fish.price_per_kg|intcomma }}</span>
+                                <span class="unit">/kg</span>
+                            </div>
+                            <div class="product-seller">
+                                <i class="fas fa-store"></i> {{ fish.seller.get_full_name|default:fish.seller.username }}
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+            
+            <div class="view-all-section">
+                <a href="{% url 'fish_list' %}" class="view-all-link">
+                    Browse all {{ all_products_count }} products <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        {% else %}
+            <div class="empty-products">
+                <div class="empty-icon">
+                    <i class="fas fa-fish"></i>
+                </div>
+                <h3 class="empty-title">No new products this week</h3>
+                <p class="empty-message">Check back soon for fresh catches from our sellers!</p>
+                <a href="{% url 'fish_list' %}" class="browse-link">
+                    <i class="fas fa-fish"></i> Browse All Products
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
     <!-- Quick Actions -->
     <div class="quick-actions">
         <a href="{% url 'fish_list' %}" class="action-card">
@@ -424,6 +484,149 @@
     margin: 0;
 }
 
+/* New Products Section */
+.new-products-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+    padding: 1rem;
+}
+
+.product-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-color: #e23b3b;
+}
+
+.product-image {
+    position: relative;
+    width: 100%;
+    height: 90px;
+    overflow: hidden;
+    background: #f3f4f6;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.placeholder-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    color: #9ca3af;
+}
+
+.placeholder-image i {
+    font-size: 2rem;
+}
+
+.new-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #e23b3b;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.product-info {
+    padding: 0.75rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-category {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0 0 0.5rem 0;
+}
+
+.product-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.price {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e23b3b;
+}
+
+.unit {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.product-seller {
+    font-size: 0.75rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: auto;
+}
+
+.product-seller i {
+    font-size: 0.625rem;
+}
+
+.empty-products {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
 /* Enhanced Responsive Design */
 @media (min-width: 768px) {
     .dashboard-container {
@@ -462,6 +665,16 @@
     .quick-actions {
         grid-template-columns: repeat(3, 1fr);
     }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .product-image {
+        height: 100px;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -492,6 +705,16 @@
         grid-column: span 2;
         max-width: 50%;
         margin: 0 auto;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .product-image {
+        height: 120px;
     }
 }
 
@@ -558,6 +781,37 @@
     
     .action-icon i {
         font-size: 1rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+    
+    .product-image {
+        height: 100px;
+    }
+    
+    .product-info {
+        padding: 0.75rem;
+    }
+    
+    .product-name {
+        font-size: 0.8rem;
+    }
+    
+    .product-category {
+        font-size: 0.7rem;
+    }
+    
+    .price {
+        font-size: 0.875rem;
+    }
+    
+    .new-badge {
+        font-size: 0.5rem;
+        padding: 0.2rem 0.4rem;
     }
 }
 
@@ -632,6 +886,45 @@
     
     .action-description {
         font-size: 0.75rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    .product-image {
+        height: 90px;
+    }
+    
+    .product-info {
+        padding: 0.5rem;
+    }
+    
+    .product-name {
+        font-size: 0.75rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .product-category {
+        font-size: 0.65rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .price {
+        font-size: 0.8rem;
+    }
+    
+    .product-seller {
+        font-size: 0.65rem;
+    }
+    
+    .new-badge {
+        font-size: 0.45rem;
+        padding: 0.15rem 0.3rem;
+        top: 0.3rem;
+        right: 0.3rem;
     }
 }
 

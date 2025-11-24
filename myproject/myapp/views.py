@@ -475,10 +475,30 @@ def logout_view(request):
 
 @login_required
 def buyer_dashboard(request):
-    """Simple buyer dashboard placeholder — redirect to fish list for now."""
-    # Keeping this minimal avoids import errors from urls.py and can be
-    # expanded later to a real dashboard view.
-    return redirect('fish_list')
+    """Buyer dashboard showing recent orders and new products from sellers."""
+    # Get recent orders for this buyer
+    recent_orders = Order.objects.filter(buyer=request.user).order_by('-created_at')[:5]
+    
+    # Get new products added recently (last 7 days)
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    new_products = Fish.objects.filter(
+        is_available=True,
+        created_at__gte=seven_days_ago
+    ).order_by('-created_at')[:4]  # Show only 4 new products to keep dashboard clean
+    
+    # Get all available products for the "Browse All" section
+    all_products_count = Fish.objects.filter(is_available=True).count()
+    
+    context = {
+        'recent_orders': recent_orders,
+        'new_products': new_products,
+        'all_products_count': all_products_count,
+    }
+    
+    return render(request, 'dashboard.html', context)
 
 
 
@@ -1444,12 +1464,41 @@ def seller_product_create(request):
         name = (request.POST.get('name') or '').strip()
         description = (request.POST.get('description') or '').strip()
         category_id = request.POST.get('category')
+        category_name = (request.POST.get('category_name') or '').strip()
         price_raw = (request.POST.get('price_per_kg') or '').strip()
         stock_raw = (request.POST.get('stock_kg') or '').strip()
         image = request.FILES.get('image')
         image_url = (request.POST.get('image_url') or '').strip()
 
-        if not name or not category_id or not price_raw or not stock_raw:
+        # Handle category selection or creation
+        category = None
+        if category_id:
+            try:
+                category = FishCategory.objects.get(id=category_id)
+            except FishCategory.DoesNotExist:
+                messages.error(request, 'Invalid category selected.')
+                return render(
+                    request,
+                    'seller/product_form.html',
+                    {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                )
+        elif category_name:
+            # Create new category
+            category, created = FishCategory.objects.get_or_create(
+                name=category_name,
+                defaults={'name': category_name}
+            )
+            if created:
+                messages.success(request, f'New category "{category_name}" created automatically.')
+        else:
+            messages.error(request, 'Please select a category or enter a new category name.')
+            return render(
+                request,
+                'seller/product_form.html',
+                {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+            )
+
+        if not name or not price_raw or not stock_raw:
             messages.error(request, 'Please fill in all required fields for the new fish.')
             return render(
                 request,
@@ -1458,11 +1507,10 @@ def seller_product_create(request):
             )
 
         try:
-            category = FishCategory.objects.get(id=category_id)
             price = Decimal(price_raw)
             stock = Decimal(stock_raw)
-        except (FishCategory.DoesNotExist, InvalidOperation):
-            messages.error(request, 'Invalid category, price, or stock value.')
+        except InvalidOperation:
+            messages.error(request, 'Invalid price or stock value.')
             return render(
                 request,
                 'seller/product_form.html',

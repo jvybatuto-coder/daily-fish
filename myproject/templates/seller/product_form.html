@@ -481,12 +481,24 @@
 
                     <div class="form-group">
                         <label for="category">Category</label>
-                        <select id="category" name="category" required>
-                            <option value="">Select category</option>
-                            {% for category in categories %}
-                                <option value="{{ category.id }}" {% if fish.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
-                            {% endfor %}
-                        </select>
+                        {% if categories %}
+                            <select id="category" name="category" required>
+                                <option value="">Select category</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if fish.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                <p style="margin: 0; color: #92400e; font-size: 0.9rem;">
+                                    <strong>No categories available!</strong> Please contact your administrator to add fish categories, or run:
+                                </p>
+                                <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-top: 0.5rem;">
+                                    python manage.py create_default_categories
+                                </code>
+                            </div>
+                            <input type="text" name="category_name" placeholder="Enter category name (temporary)" required>
+                        {% endif %}
                     </div>
 
                     <div class="form-group">

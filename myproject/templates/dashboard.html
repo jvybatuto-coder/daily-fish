@@ -4,106 +4,108 @@
 {% block title %}Buyer Dashboard - DailyFish{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-6 mt-16">
+<div class="dashboard-container">
     <!-- Dashboard Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Buyer Dashboard</h1>
-            <p class="text-gray-600 mt-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}! Here's your order history.</p>
-        </div>
-        <div class="mt-4 md:mt-0">
-            <a href="{% url 'fish_list' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition-all duration-200 shadow hover:shadow-md">
-                <i class="fas fa-fish mr-2"></i> Browse Fish
-            </a>
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="welcome-section">
+                <h1 class="dashboard-title">Buyer Dashboard</h1>
+                <p class="welcome-message">Welcome back, {{ request.user.get_full_name|default:request.user.username }}! Here's your order history.</p>
+            </div>
+            <div class="browse-button">
+                <a href="{% url 'fish_list' %}" class="browse-link">
+                    <i class="fas fa-fish"></i> Browse Fish
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Recent Orders Section -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-800">Recent Orders</h2>
-            <p class="text-sm text-gray-500">Your most recent purchases</p>
+    <div class="orders-section">
+        <div class="section-header">
+            <h2 class="section-title">Recent Orders</h2>
+            <p class="section-subtitle">Your most recent purchases</p>
         </div>
         
         {% if recent_orders %}
-            <div class="divide-y divide-gray-200">
+            <div class="orders-list">
                 {% for order in recent_orders %}
-                    <div class="p-6 hover:bg-gray-50 transition-colors">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between">
-                            <div class="mb-4 md:mb-0">
-                                <div class="flex items-center">
-                                    <span class="text-sm font-medium text-gray-500 mr-2">Order #{{ order.id }}</span>
-                                    <span class="px-2 py-1 text-xs rounded-full {% if order.status == 'completed' %}bg-green-100 text-green-800{% elif order.status == 'pending' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                    <div class="order-item">
+                        <div class="order-content">
+                            <div class="order-info">
+                                <div class="order-header">
+                                    <span class="order-number">Order #{{ order.id }}</span>
+                                    <span class="order-status {% if order.status == 'completed' %}status-completed{% elif order.status == 'pending' %}status-pending{% else %}status-other{% endif %}">
                                         {{ order.get_status_display }}
                                     </span>
                                 </div>
-                                <p class="text-sm text-gray-500 mt-1">
+                                <p class="order-details">
                                     {{ order.items.count }} item{{ order.items.count|pluralize }} • {{ order.created_at|date:"M d, Y H:i" }}
                                 </p>
                             </div>
-                            <div class="flex items-center">
-                                <span class="text-lg font-semibold text-gray-900 mr-4">₱{{ order.total_amount|intcomma }}</span>
-                                <a href="{% url 'order_detail' order.id %}" class="text-primary hover:text-primary-dark font-medium">
-                                    View Details <i class="fas fa-arrow-right ml-1"></i>
+                            <div class="order-actions">
+                                <span class="order-price">₱{{ order.total_amount|intcomma }}</span>
+                                <a href="{% url 'order_detail' order.id %}" class="view-details">
+                                    View Details <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
-            <div class="px-6 py-4 border-t border-gray-200 text-right">
-                <a href="{% url 'order_history' %}" class="text-primary hover:text-primary-dark font-medium">
-                    View all orders <i class="fas fa-arrow-right ml-1"></i>
+            <div class="view-all-section">
+                <a href="{% url 'order_history' %}" class="view-all-link">
+                    View all orders <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         {% else %}
-            <div class="p-12 text-center">
-                <div class="inline-block p-4 bg-gray-100 rounded-full mb-4">
-                    <i class="fas fa-shopping-bag text-gray-400 text-2xl"></i>
+            <div class="empty-orders">
+                <div class="empty-icon">
+                    <i class="fas fa-shopping-bag"></i>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-1">No orders yet</h3>
-                <p class="text-gray-500 mb-6">You haven't placed any orders yet. Start shopping now!</p>
-                <a href="{% url 'fish_list' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90 transition-all duration-200">
-                    <i class="fas fa-fish mr-2"></i> Browse Fish
+                <h3 class="empty-title">No orders yet</h3>
+                <p class="empty-message">You haven't placed any orders yet. Start shopping now!</p>
+                <a href="{% url 'fish_list' %}" class="browse-link">
+                    <i class="fas fa-fish"></i> Browse Fish
                 </a>
             </div>
         {% endif %}
     </div>
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <a href="{% url 'fish_list' %}" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 bg-blue-50 rounded-lg text-blue-600 mr-4">
-                    <i class="fas fa-fish text-xl"></i>
+    <div class="quick-actions">
+        <a href="{% url 'fish_list' %}" class="action-card">
+            <div class="action-content">
+                <div class="action-icon icon-blue">
+                    <i class="fas fa-fish"></i>
                 </div>
-                <div>
-                    <h3 class="font-medium text-gray-900">Browse Fish</h3>
-                    <p class="text-sm text-gray-500">Find fresh fish and seafood</p>
-                </div>
-            </div>
-        </a>
-        
-        <a href="{% url 'order_history' %}" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 bg-green-50 rounded-lg text-green-600 mr-4">
-                    <i class="fas fa-history text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="font-medium text-gray-900">Order History</h3>
-                    <p class="text-sm text-gray-500">View all your past orders</p>
+                <div class="action-text">
+                    <h3 class="action-title">Browse Fish</h3>
+                    <p class="action-description">Find fresh fish and seafood</p>
                 </div>
             </div>
         </a>
         
-        <a href="{% url 'profile' %}" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 bg-purple-50 rounded-lg text-purple-600 mr-4">
-                    <i class="fas fa-user text-xl"></i>
+        <a href="{% url 'order_history' %}" class="action-card">
+            <div class="action-content">
+                <div class="action-icon icon-green">
+                    <i class="fas fa-history"></i>
                 </div>
-                <div>
-                    <h3 class="font-medium text-gray-900">My Profile</h3>
-                    <p class="text-sm text-gray-500">Update your account details</p>
+                <div class="action-text">
+                    <h3 class="action-title">Order History</h3>
+                    <p class="action-description">View all your past orders</p>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{% url 'profile' %}" class="action-card">
+            <div class="action-content">
+                <div class="action-icon icon-purple">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="action-text">
+                    <h3 class="action-title">My Profile</h3>
+                    <p class="action-description">Update your account details</p>
                 </div>
             </div>
         </a>
@@ -113,17 +115,564 @@
 
 {% block extra_css %}
 <style>
-    .container {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
+/* Dashboard Container */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    margin-top: 80px;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.welcome-section h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.welcome-message {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.browse-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: #e23b3b;
+    color: white;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(226, 59, 59, 0.2);
+    align-self: flex-start;
+}
+
+.browse-link:hover {
+    background: #c53030;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(226, 59, 59, 0.3);
+}
+
+.browse-link i {
+    margin-right: 0.5rem;
+}
+
+/* Orders Section */
+.orders-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.section-subtitle {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Orders List */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-item {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s ease;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.order-item:hover {
+    background: #f9fafb;
+}
+
+.order-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.order-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.order-number {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.order-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-other {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.order-details {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0.5rem 0 0 0;
+}
+
+.order-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.order-price {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.view-details {
+    color: #e23b3b;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.view-details:hover {
+    color: #c53030;
+}
+
+.view-details i {
+    font-size: 0.75rem;
+}
+
+.view-all-section {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    background: #f9fafb;
+}
+
+.view-all-link {
+    color: #e23b3b;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.view-all-link:hover {
+    color: #c53030;
+}
+
+/* Empty Orders */
+.empty-orders {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.empty-icon {
+    width: 4rem;
+    height: 4rem;
+    background: #f3f4f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+}
+
+.empty-icon i {
+    font-size: 1.5rem;
+    color: #9ca3af;
+}
+
+.empty-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-message {
+    color: #6b7280;
+    margin: 0 0 1.5rem 0;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.action-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.action-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.action-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.action-icon i {
+    font-size: 1.25rem;
+}
+
+.icon-blue {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.icon-green {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.icon-purple {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+
+.action-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.action-description {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Enhanced Responsive Design */
+@media (min-width: 768px) {
+    .dashboard-container {
+        padding: 2rem 2rem;
     }
     
-    @media (max-width: 768px) {
-        .container {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
+    .header-content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
     }
+    
+    .welcome-section {
+        flex: 1;
+    }
+    
+    .browse-button {
+        flex-shrink: 0;
+    }
+    
+    .order-content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .order-info {
+        flex: 1;
+    }
+    
+    .order-actions {
+        flex-shrink: 0;
+        align-items: center;
+    }
+    
+    .quick-actions {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard-container {
+        padding: 2rem 0;
+    }
+    
+    .welcome-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .welcome-message {
+        font-size: 1.125rem;
+    }
+}
+
+/* Tablet Responsive */
+@media (max-width: 1023px) and (min-width: 768px) {
+    .dashboard-container {
+        padding: 1.5rem 1.5rem;
+    }
+    
+    .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .quick-actions > a:last-child {
+        grid-column: span 2;
+        max-width: 50%;
+        margin: 0 auto;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 767px) {
+    .dashboard-container {
+        padding: 1rem 0.75rem;
+        margin-top: 70px;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.75rem;
+    }
+    
+    .welcome-message {
+        font-size: 0.875rem;
+    }
+    
+    .section-header {
+        padding: 1rem;
+    }
+    
+    .order-content {
+        padding: 1rem;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .order-price {
+        font-size: 1rem;
+    }
+    
+    .empty-orders {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-icon {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .empty-icon i {
+        font-size: 1.25rem;
+    }
+    
+    .action-card {
+        padding: 1rem;
+    }
+    
+    .action-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+    
+    .action-icon i {
+        font-size: 1rem;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.5rem;
+    }
+    
+    .browse-link {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+    }
+    
+    .order-content {
+        padding: 0.75rem;
+    }
+    
+    .order-number {
+        font-size: 0.75rem;
+    }
+    
+    .order-status {
+        font-size: 0.625rem;
+        padding: 0.125rem 0.5rem;
+    }
+    
+    .order-details {
+        font-size: 0.75rem;
+    }
+    
+    .order-price {
+        font-size: 0.875rem;
+    }
+    
+    .view-details {
+        font-size: 0.75rem;
+    }
+    
+    .empty-title {
+        font-size: 1rem;
+    }
+    
+    .empty-message {
+        font-size: 0.75rem;
+    }
+    
+    .action-card {
+        padding: 0.75rem;
+    }
+    
+    .action-icon {
+        width: 2rem;
+        height: 2rem;
+    }
+    
+    .action-icon i {
+        font-size: 0.875rem;
+    }
+    
+    .action-title {
+        font-size: 0.875rem;
+    }
+    
+    .action-description {
+        font-size: 0.75rem;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .action-card:hover {
+        transform: none;
+    }
+    
+    .browse-link:hover {
+        transform: none;
+    }
+    
+    .action-card:active {
+        transform: scale(0.98);
+    }
+    
+    .browse-link:active {
+        transform: scale(0.98);
+    }
+}
+
+/* High contrast and accessibility */
+@media (prefers-contrast: high) {
+    .orders-section,
+    .action-card {
+        border: 2px solid #333;
+    }
+    
+    .browse-link {
+        border: 2px solid #e23b3b;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
 </style>
 {% endblock %}

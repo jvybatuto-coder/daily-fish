@@ -286,17 +286,41 @@
             cursor: not-allowed;
             transform: none;
         }
-        .forgot-link {
-            text-align: right;
+        .signup-link {
+            text-align: center;
             margin-top: 0.5rem;
         }
-        .forgot-link a {
-            color: #e23b3b;
-            text-decoration: none;
+        .signup-link span {
+            color: #6b7280;
             font-size: 0.9rem;
         }
-        .forgot-link a:hover {
+        .signup-link a {
+            color: #e23b3b;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .signup-link a:hover {
             text-decoration: underline;
+            color: #c41e1e;
+        }
+        .signin-link {
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+        .signin-link span {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        .signin-link a {
+            color: #e23b3b;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .signin-link a:hover {
+            text-decoration: underline;
+            color: #c41e1e;
         }
         .form-section {
             position: absolute;
@@ -636,8 +660,8 @@
                     <label for="login-password" class="form-label">Password</label>
                     <input type="password" id="login-password" name="password" class="form-input" required aria-label="Enter your password">
                 </div>
-                <div class="forgot-link">
-                    <a href="#" onclick="showError('Forgot password feature coming soon!')">Forgot Password?</a>
+                <div class="signup-link">
+                    <span>If you don't have an account, <a href="#" onclick="switchTab('signup'); return false;" style="color: #e23b3b; text-decoration: none; font-weight: 600;">Sign up here</a></span>
                 </div>
                 <button type="submit" class="submit-btn">Sign In</button>
             </form>
@@ -673,6 +697,9 @@
                     <div id="password-match" class="text-sm text-red-600 mt-1 pl-2 hidden">
                         Passwords do not match
                     </div>
+                </div>
+                <div class="signin-link">
+                    <span>Already have an account? <a href="#" onclick="switchTab('signin'); return false;" style="color: #e23b3b; text-decoration: none; font-weight: 600;">Sign in here</a></span>
                 </div>
                 <button type="submit" class="submit-btn">Sign Up</button>
             </form>

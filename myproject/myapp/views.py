@@ -259,75 +259,28 @@ def validate_password_strength(password, request_post=None):
     return True
 
 def register_view(request):
-    """Handle user registration with validation and error handling"""
+    """Handle buyer-only user registration"""
     if request.method == 'POST':
         try:
-            # Get form data with proper type conversion
-            raw_username = request.POST.get('username', '').strip()
+            # Get form data
+            username = request.POST.get('username', '').strip()
             email = request.POST.get('email', '').strip().lower()
             password1 = request.POST.get('password1', '')
             password2 = request.POST.get('password2', '')
-            role = request.POST.get('role', '').lower()
-            full_name = request.POST.get('full_name', '').strip()
-            phone_number = request.POST.get('phone_number', '').strip()
-            address_location = request.POST.get('address_location', '').strip()
-            store_name = request.POST.get('store_name', '').strip()
             
-            # Initialize username early to prevent UnboundLocalError
-            username = raw_username
+            # Force role to buyer
+            role = 'buyer'
             
-            # Validate required fields (without enforcing username yet)
-            if not all([email, password1, password2, role]):
+            # Validate required fields
+            if not all([username, email, password1, password2]):
                 raise ValidationError('Please fill in all required fields.')
 
-            # For buyers, username from form is still required
-            if role == 'buyer' and not raw_username:
-                raise ValidationError('Please choose a username.')
-
-            # Additional required fields for seller registration (minimal approach)
-            if role == 'seller':
-                # Only require phone number, everything else optional
-                if not phone_number:
-                    raise ValidationError('Phone number is required for seller registration.')
-                
-                # Set simple defaults
-                full_name = username or 'Seller'
-                store_name = f"{full_name}'s Store"
-                address_location = "To be updated"
-                
-            # Validate role
-            if role not in ['buyer', 'seller']:
-                raise ValidationError('Invalid user role selected.')
-                
             # Validate email format
             try:
                 validate_email(email)
             except ValidationError:
                 raise ValidationError('Please enter a valid email address.')
-
-            # Enforce Gmail-only registration (temporarily disabled for testing)
-            # if not email.endswith('@gmail.com'):
-            #     raise ValidationError('Please use a Gmail address (ending in @gmail.com).')
                 
-            # Derive or use username depending on role
-            if role == 'seller' and not raw_username:
-                # Auto-generate username from email for sellers
-                base = (email.split('@')[0] or 'seller').strip()
-                # Keep only allowed characters, replace others with underscore
-                base = re.sub(r'[^a-zA-Z0-9_]', '_', base)
-                if not base:
-                    base = 'seller'
-                username = base[:30]
-
-                original = username
-                counter = 1
-                # Ensure uniqueness (case-insensitive)
-                while User.objects.filter(username__iexact=username).exists():
-                    suffix = f"_{counter}"
-                    username = (original[:30 - len(suffix)] + suffix)
-                    counter += 1
-            # For all other cases (buyer with username, seller with username), username is already set to raw_username
-
             # Validate username (alphanumeric + underscore, 3-30 chars)
             if not re.match(r'^[a-zA-Z0-9_]{3,30}$', username):
                 raise ValidationError(
@@ -349,59 +302,26 @@ def register_view(request):
             
             # Start transaction
             with transaction.atomic():
-                # Create user
+                # Create buyer user
                 user = User.objects.create_user(
                     username=username,
                     email=email,
                     password=password1,
-                    is_staff=(role == 'seller')
+                    is_staff=False  # Buyers are not staff
                 )
                 
                 # Create related objects
                 Cart.objects.create(user=user)
-                profile = UserProfile.objects.create(user=user)
+                UserProfile.objects.create(user=user)
 
-                # If seller, populate seller-specific profile fields (minimal)
-                if role == 'seller':
-                    try:
-                        profile.phone_number = phone_number
-                        profile.store_name = store_name
-                        profile.details = address_location
-                        profile.save()
-                    except Exception as e:
-                        logger.error(f'Seller profile update error: {e}')
-                        # Continue even if profile update fails
-
-                # Add to appropriate group
-                group, _ = Group.objects.get_or_create(name=role.capitalize())
+                # Add to Buyer group
+                group, _ = Group.objects.get_or_create(name='Buyer')
                 user.groups.add(group)
                 
                 # Set role in session
                 request.session['user_role'] = role
                 
-                # Send welcome email (temporarily disabled for testing)
-                # try:
-                #     subject = f'Welcome to DailyFish, {user.username}!'
-                #     html_message = render_to_string('emails/welcome.html', {
-                #         'username': user.username,
-                #         'is_seller': role == 'seller'
-                #     })
-                #     plain_message = strip_tags(html_message)
-                #     send_mail(
-                #         subject=subject,
-                #         message=plain_message,
-                #         from_email=settings.DEFAULT_FROM_EMAIL,
-                #         recipient_list=[user.email],
-                #         html_message=html_message,
-                #         fail_silently=True
-                #     )
-                # except Exception as e:
-                #     logger.error(f'Error sending welcome email: {str(e)}')
-                
-                # Save the role in the session before login to prevent session issues
-                request.session['user_role'] = role
-                
-                # Save the session before login to ensure it's persisted
+                # Save the session before login to prevent session issues
                 request.session.save()
                 
                 # Auto-login after registration
@@ -413,8 +333,8 @@ def register_view(request):
                 
                 messages.success(request, f'Welcome, {user.username}! Your account has been created successfully.')
                 
-                # Redirect based on role - using seller_dashboard for seller
-                return redirect('seller_dashboard' if role == 'seller' else 'fish_list')
+                # Redirect buyers to fish list
+                return redirect('fish_list')
                 
         except ValidationError as e:
             messages.error(request, str(e))
@@ -434,64 +354,97 @@ def register_view(request):
 @require_http_methods(['GET', 'POST'])
 @csrf_protect
 def login_view(request):
-    """Handle user login with rate limiting and security measures"""
+    """Handle user login with automatic role detection"""
     # Redirect if already authenticated
     if request.user.is_authenticated:
         role = request.session.get('user_role', 'buyer')
-        # Use seller_dashboard as the seller dashboard
         return redirect('seller_dashboard' if role == 'seller' else 'fish_list')
     
     if request.method == 'POST':
         try:
             username_input = request.POST.get('username', '').strip()
             password = request.POST.get('password', '')
-            role = request.POST.get('role', '').lower()
             
             # Basic validation
-            if not all([username_input, password, role]):
+            if not all([username_input, password]):
                 raise ValidationError('Please fill in all required fields.')
-                
-            # Validate role
-            if role not in ['buyer', 'seller']:
-                raise ValidationError('Invalid user role selected.')
             
-            # Rate limiting check (pseudo-code - implement actual rate limiting)
-            # if is_rate_limited(request):
-            #     raise ValidationError('Too many login attempts. Please try again later.')
-            
-            # Map login identifier based on role
+            # Auto-detect role based on input
+            role = None
             username_for_auth = username_input
-            if role == 'seller':
-                # For sellers, treat the login field as Gmail address
+            
+            # Check if input looks like an email address (for sellers)
+            if '@' in username_input and '.' in username_input:
                 email = username_input.strip().lower()
-                if not email.endswith('@gmail.com'):
-                    raise ValidationError('Please use your Gmail address to sign in as a seller.')
-
-                seller_user = User.objects.filter(email__iexact=email, is_staff=True).first()
-                if not seller_user:
-                    raise ValidationError('No seller account found with that Gmail address.')
-                username_for_auth = seller_user.username
-
+                if email.endswith('@gmail.com'):
+                    # Check for fixed seller account
+                    if email == 'adminseller@gmail.com':
+                        # Try to find or create the fixed seller account
+                        seller_user, created = User.objects.get_or_create(
+                            username='adminseller',
+                            defaults={
+                                'email': 'adminseller@gmail.com',
+                                'is_staff': True,
+                                'is_superuser': False,
+                                'is_active': True
+                            }
+                        )
+                        
+                        # Set password if newly created
+                        if created:
+                            seller_user.set_password('admin123')
+                            seller_user.save()
+                            
+                            # Create related objects
+                            UserProfile.objects.get_or_create(user=seller_user)
+                            
+                            # Add to Seller group
+                            group, _ = Group.objects.get_or_create(name='Seller')
+                            seller_user.groups.add(group)
+                        
+                        # Verify password for adminseller
+                        if password == 'admin123':
+                            role = 'seller'
+                            username_for_auth = 'adminseller'
+                        else:
+                            raise ValidationError('Invalid password for seller account.')
+                    else:
+                        # Try to find other seller by email
+                        seller_user = User.objects.filter(email__iexact=email, is_staff=True).first()
+                        if seller_user:
+                            role = 'seller'
+                            username_for_auth = seller_user.username
+                        else:
+                            raise ValidationError('No seller account found with that Gmail address.')
+                else:
+                    raise ValidationError('Please use a Gmail address for seller login.')
+            else:
+                # Treat as username (buyer)
+                role = 'buyer'
+            
             # Authenticate user
             user = authenticate(request, username=username_for_auth, password=password)
             
             if user is None:
-                # Log failed login attempt
                 logger.warning(f'Failed login attempt for identifier: {username_input}')
                 raise ValidationError('Invalid username or password.')
                 
             # Check if user is active
             if not user.is_active:
                 raise ValidationError('This account has been deactivated.')
-                
-            # Check role-specific permissions
+            
+            # Verify role matches user's actual role
             if role == 'seller' and not user.is_staff:
-                raise ValidationError('You do not have seller privileges. Please register as a seller.')
+                raise ValidationError('This account does not have seller privileges.')
+            elif role == 'buyer' and user.is_staff:
+                raise ValidationError('Seller accounts should use Gmail address to login.')
             
             # Check if user is in the correct group
             group_name = 'Seller' if role == 'seller' else 'Buyer'
             if not user.groups.filter(name=group_name).exists():
-                raise ValidationError(f'You are not registered as a {role}.')
+                # Add to correct group if missing
+                group, _ = Group.objects.get_or_create(name=group_name)
+                user.groups.add(group)
             
             # Login successful
             login(request, user)
@@ -505,7 +458,6 @@ def login_view(request):
             next_url = request.GET.get('next', '')
             if next_url and is_safe_url(next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
-            # Use seller_dashboard as the seller dashboard
             return redirect('seller_dashboard' if role == 'seller' else 'fish_list')
             
         except ValidationError as e:

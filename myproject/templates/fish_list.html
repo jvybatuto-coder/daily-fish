@@ -51,10 +51,11 @@
         .nav a:hover { background: white !important; color: #c82333 !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(226,59,59,0.3); }
         main.container { margin-top: 100px; }
 
-        /* Mobile Responsive Styles */
+        /* Mobile Responsive Styles with TikTok-style Footer */
         @media (max-width: 768px) {
             .header-content {
                 padding: 0.75rem 1rem;
+                justify-content: space-between;
             }
 
             .logo img {
@@ -73,27 +74,124 @@
                 padding-left: 0;
             }
 
+            /* Hide desktop nav on mobile */
             .nav {
-                gap: 0.5rem;
-            }
-
-            .nav a {
-                padding: 0.4rem 0.6rem;
-                font-size: 0.8rem;
-                min-width: auto;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            /* Hide text on mobile, show only icons */
-            .nav a .nav-text {
                 display: none;
             }
 
-            .nav a i {
-                font-size: 1rem;
-                margin: 0;
+            /* Add search and categories to header */
+            .header-right {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .search-bar {
+                display: flex;
+                align-items: center;
+                background: rgba(255, 255, 255, 0.9);
+                border: 2px solid #e23b3b;
+                border-radius: 20px;
+                padding: 0.3rem 0.8rem;
+                min-width: 150px;
+            }
+
+            .search-bar input {
+                border: none;
+                background: none;
+                outline: none;
+                font-size: 0.8rem;
+                width: 100%;
+            }
+
+            .categories-dropdown {
+                background: white;
+                border: 2px solid #e23b3b;
+                border-radius: 8px;
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+                color: #e23b3b;
+                cursor: pointer;
+            }
+
+            /* TikTok-style footer */
+            .mobile-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                border-top: 1px solid #e5e7eb;
+                padding: 0.5rem 0;
+                z-index: 1000;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .mobile-footer-nav {
+                display: flex;
+                justify-content: space-around;
+                width: 100%;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+
+            .mobile-footer-nav a {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                color: #6b7280;
+                padding: 0.5rem;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                min-width: 60px;
+                position: relative;
+            }
+
+            .mobile-footer-nav a:hover {
+                color: #e23b3b;
+                background: rgba(226, 59, 59, 0.1);
+            }
+
+            .mobile-footer-nav a.active {
+                color: #e23b3b;
+            }
+
+            .mobile-footer-nav a i {
+                font-size: 1.2rem;
+                margin-bottom: 0.2rem;
+            }
+
+            .mobile-footer-nav a span {
+                font-size: 0.7rem;
+                font-weight: 500;
+            }
+
+            .cart-badge {
+                position: absolute;
+                top: 0.2rem;
+                right: 0.2rem;
+                background: #e23b3b;
+                color: white;
+                border-radius: 50%;
+                width: 1rem;
+                height: 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.6rem;
+                font-weight: 600;
+            }
+
+            /* Adjust main content for footer */
+            main.container {
+                margin-top: 100px;
+                margin-bottom: 80px;
+                padding: 1rem;
             }
         }
 
@@ -111,17 +209,30 @@
                 font-size: 1.3rem;
             }
 
-            .nav {
-                gap: 0.25rem;
+            .search-bar {
+                min-width: 120px;
+                padding: 0.25rem 0.6rem;
             }
 
-            .nav a {
-                padding: 0.3rem 0.5rem;
+            .search-bar input {
                 font-size: 0.75rem;
             }
 
-            .nav a i {
-                font-size: 0.9rem;
+            .categories-dropdown {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .mobile-footer-nav a i {
+                font-size: 1.1rem;
+            }
+
+            .mobile-footer-nav a span {
+                font-size: 0.65rem;
+            }
+
+            main.container {
+                padding: 0.75rem;
             }
         }
 
@@ -139,16 +250,35 @@
                 font-size: 1.1rem;
             }
 
-            .nav {
-                gap: 0.2rem;
+            .search-bar {
+                min-width: 100px;
+                padding: 0.2rem 0.5rem;
             }
 
-            .nav a {
-                padding: 0.25rem 0.4rem;
+            .search-bar input {
+                font-size: 0.7rem;
             }
 
-            .nav a i {
-                font-size: 0.8rem;
+            .categories-dropdown {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.7rem;
+            }
+
+            .mobile-footer-nav a {
+                min-width: 50px;
+                padding: 0.4rem;
+            }
+
+            .mobile-footer-nav a i {
+                font-size: 1rem;
+            }
+
+            .mobile-footer-nav a span {
+                font-size: 0.6rem;
+            }
+
+            main.container {
+                padding: 0.5rem;
             }
         }
     </style>
@@ -161,31 +291,71 @@
                 <span class="logo-text">DailyFish</span>
             </a>
             <nav class="nav" aria-label="Main navigation">
-                <a href="{% url 'fish_list' %}">
-                    <i class="fas fa-home"></i> <span class="nav-text">Shop Fish</span>
-                </a>
+                <a href="{% url 'fish_list' %}">Shop Fish</a>
                 <a href="{% url 'cart' %}" style="display:flex; align-items:center; gap:.4rem;">
-                    <i class="fas fa-shopping-cart"></i> <span class="nav-text">Cart</span>
+                    <span>Cart</span>
+                    <span style="font-size:1.1rem;">🛒</span>
                     <span class="cart-count" id="cart-count" style="margin-left:.25rem;">0</span>
                 </a>
-                <a href="{% url 'order_history' %}">
-                    <i class="fas fa-history"></i> <span class="nav-text">My Orders</span>
-                </a>
+                <a href="{% url 'order_history' %}">My Orders</a>
                 <a href="{% url 'message_center' %}" style="display:flex; align-items:center; gap:.4rem;">
-                    <i class="fas fa-envelope"></i> <span class="nav-text">Messages</span>
+                    <span>Messages</span>
+                    <span style="font-size:1.1rem;"></span>
                 </a>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'logout' %}">
-                        <i class="fas fa-sign-out-alt"></i> <span class="nav-text">Logout</span>
-                    </a>
+                    <a href="{% url 'logout' %}">Logout</a>
                 {% else %}
-                    <a href="{% url 'login' %}">
-                        <i class="fas fa-sign-in-alt"></i> <span class="nav-text">Login</span>
-                    </a>
+                    <a href="{% url 'login' %}">Login</a>
                 {% endif %}
             </nav>
+            <!-- Mobile header right side with search and categories -->
+            <div class="header-right">
+                <div class="search-bar">
+                    <input type="text" placeholder="Search fish..." id="mobileSearch">
+                </div>
+                <select class="categories-dropdown" id="mobileCategories">
+                    <option value="">All</option>
+                    <option value="fresh">Fresh</option>
+                    <option value="frozen">Frozen</option>
+                    <option value="processed">Processed</option>
+                </select>
+            </div>
         </div>
     </header>
+
+    <!-- TikTok-style Mobile Footer -->
+    <footer class="mobile-footer">
+        <div class="mobile-footer-nav">
+            <a href="{% url 'fish_list' %}" class="active">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="{% url 'cart' %}">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Cart</span>
+                <span class="cart-badge" id="mobile-cart-count">0</span>
+            </a>
+            <a href="{% url 'order_history' %}">
+                <i class="fas fa-history"></i>
+                <span>Orders</span>
+            </a>
+            <a href="{% url 'message_center' %}">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </a>
+            {% endif %}
+        </div>
+    </footer>
 
     <main class="container">
         <div class="main-content">
@@ -936,6 +1106,69 @@
             if (e.target === this) {
                 closeAddCartModal();
             }
+        });
+
+        // Mobile functionality
+        function syncCartCount() {
+            const desktopCartCount = document.getElementById('cart-count');
+            const mobileCartCount = document.getElementById('mobile-cart-count');
+            
+            if (desktopCartCount && mobileCartCount) {
+                mobileCartCount.textContent = desktopCartCount.textContent;
+            }
+        }
+
+        // Set active footer navigation based on current page
+        function setActiveFooterNav() {
+            const currentPath = window.location.pathname;
+            const footerLinks = document.querySelectorAll('.mobile-footer-nav a');
+            
+            footerLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === currentPath || 
+                    (currentPath.includes('fish_list') && link.getAttribute('href') === '/')) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Sync search functionality between desktop and mobile
+        function syncSearchFunctionality() {
+            const mobileSearch = document.getElementById('mobileSearch');
+            const desktopSearch = document.querySelector('input[name="search"]');
+            const mobileCategories = document.getElementById('mobileCategories');
+            const desktopCategories = document.querySelector('select[name="category"]');
+            
+            if (mobileSearch && desktopSearch) {
+                mobileSearch.addEventListener('input', function() {
+                    desktopSearch.value = this.value;
+                });
+                
+                desktopSearch.addEventListener('input', function() {
+                    mobileSearch.value = this.value;
+                });
+            }
+            
+            if (mobileCategories && desktopCategories) {
+                mobileCategories.addEventListener('change', function() {
+                    desktopCategories.value = this.value;
+                    desktopCategories.form.submit();
+                });
+                
+                desktopCategories.addEventListener('change', function() {
+                    mobileCategories.value = this.value;
+                });
+            }
+        }
+
+        // Initialize mobile functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            syncCartCount();
+            setActiveFooterNav();
+            syncSearchFunctionality();
+            
+            // Update cart count periodically
+            setInterval(syncCartCount, 1000);
         });
     </script>
 </body>

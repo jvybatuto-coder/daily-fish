@@ -494,12 +494,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="harvest_date">Harvest Date</label>
-                        <input type="date" id="harvest_date" name="harvest_date" value="{{ fish.harvest_date|default:''|date:'Y-m-d' }}" required>
-                        <p class="field-help">When was this fish caught? This helps buyers track freshness and quality.</p>
-                    </div>
-
-                    <div class="form-group">
                         <label for="price_per_kg">Price per kg (₱)</label>
                         <div style="position: relative;">
                             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;">₱</span>
@@ -603,14 +597,13 @@
                     // Basic client-side validation
                     const name = document.getElementById('name').value.trim();
                     const category = document.getElementById('category').value;
-                    const harvestDate = document.getElementById('harvest_date').value;
                     const price = document.getElementById('price_per_kg').value.trim();
                     const stock = document.getElementById('stock_kg').value.trim();
                     
                     // Validate required fields
-                    if (!name || !category || !harvestDate || !price || !stock) {
+                    if (!name || !category || !price || !stock) {
                         e.preventDefault();
-                        alert('Please fill in all required fields: Fish Name, Category, Harvest Date, Price, and Stock.');
+                        alert('Please fill in all required fields: Fish Name, Category, Price, and Stock.');
                         return false;
                     }
                     
@@ -627,16 +620,6 @@
                     if (isNaN(stockNum) || stockNum < 0) {
                         e.preventDefault();
                         alert('Stock must be a valid number (0 or greater).');
-                        return false;
-                    }
-                    
-                    // Validate harvest date
-                    const selectedDate = new Date(harvestDate);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
-                    if (isNaN(selectedDate.getTime()) || selectedDate > today) {
-                        e.preventDefault();
-                        alert('Harvest date cannot be in the future.');
                         return false;
                     }
                     

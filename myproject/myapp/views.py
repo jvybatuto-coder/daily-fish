@@ -1446,11 +1446,10 @@ def seller_product_create(request):
         category_id = request.POST.get('category')
         price_raw = (request.POST.get('price_per_kg') or '').strip()
         stock_raw = (request.POST.get('stock_kg') or '').strip()
-        harvest_date_raw = (request.POST.get('harvest_date') or '').strip()
         image = request.FILES.get('image')
         image_url = (request.POST.get('image_url') or '').strip()
 
-        if not name or not category_id or not price_raw or not stock_raw or not harvest_date_raw:
+        if not name or not category_id or not price_raw or not stock_raw:
             messages.error(request, 'Please fill in all required fields for the new fish.')
             return render(
                 request,
@@ -1514,27 +1513,6 @@ def seller_product_create(request):
                     'seller/product_form.html',
                     {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
                 )
-            
-            # Validate harvest date
-            try:
-                from datetime import datetime
-                harvest_date = datetime.strptime(harvest_date_raw, '%Y-%m-%d').date()
-                # Check if date is not in the future
-                from datetime import date
-                if harvest_date > date.today():
-                    messages.error(request, 'Harvest date cannot be in the future.')
-                    return render(
-                        request,
-                        'seller/product_form.html',
-                        {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
-                    )
-            except ValueError:
-                messages.error(request, 'Please enter a valid harvest date.')
-                return render(
-                    request,
-                    'seller/product_form.html',
-                    {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
-                )
                 
         except Exception as e:
             messages.error(request, f'An error occurred: {str(e)}')
@@ -1551,7 +1529,6 @@ def seller_product_create(request):
             seller=request.user,
             price_per_kg=price,
             stock_kg=stock,
-            harvest_date=harvest_date,
             is_available=True,
         )
 
@@ -1590,11 +1567,10 @@ def seller_product_edit(request, fish_id):
         category_id = request.POST.get('category')
         price_raw = (request.POST.get('price_per_kg') or '').strip()
         stock_raw = (request.POST.get('stock_kg') or '').strip()
-        harvest_date_raw = (request.POST.get('harvest_date') or '').strip()
         image = request.FILES.get('image')
         image_url = (request.POST.get('image_url') or '').strip()
 
-        if not name or not category_id or not price_raw or not stock_raw or not harvest_date_raw:
+        if not name or not category_id or not price_raw or not stock_raw:
             messages.error(request, 'Please fill in all required fields for the fish.')
             return render(request, 'seller/product_form.html', context)
         
@@ -1630,19 +1606,6 @@ def seller_product_edit(request, fish_id):
             except (InvalidOperation, ValueError):
                 messages.error(request, 'Please enter a valid stock number.')
                 return render(request, 'seller/product_form.html', context)
-            
-            # Validate harvest date
-            try:
-                from datetime import datetime
-                harvest_date = datetime.strptime(harvest_date_raw, '%Y-%m-%d').date()
-                # Check if date is not in the future
-                from datetime import date
-                if harvest_date > date.today():
-                    messages.error(request, 'Harvest date cannot be in the future.')
-                    return render(request, 'seller/product_form.html', context)
-            except ValueError:
-                messages.error(request, 'Please enter a valid harvest date.')
-                return render(request, 'seller/product_form.html', context)
                 
         except Exception as e:
             messages.error(request, f'An error occurred: {str(e)}')
@@ -1654,7 +1617,6 @@ def seller_product_edit(request, fish_id):
         fish.category = category
         fish.price_per_kg = price
         fish.stock_kg = stock
-        fish.harvest_date = harvest_date
 
         if image:
             fish.image = image

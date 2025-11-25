@@ -22,7 +22,6 @@ class Fish(models.Model):
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fish_products', null=True, blank=True)
     price_per_kg = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
     stock_kg = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
-    harvest_date = models.DateField(help_text="When the fish was caught")
     image = models.ImageField(upload_to='fish_images/', blank=True, null=True)
     image_url = models.URLField(blank=True, help_text="External image URL if no local image")
     is_available = models.BooleanField(default=True)

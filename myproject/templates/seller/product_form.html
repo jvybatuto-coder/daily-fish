@@ -482,9 +482,9 @@
                         <input type="text" id="name" name="name" value="{{ fish.name|default:'' }}" required>
                     </div>
 
-                    <div class="form-group" style="display: none;">
+                    <div class="form-group">
                         <label for="category">Category</label>
-                        <select id="category" name="category">
+                        <select id="category" name="category" required>
                             <option value="">Select category</option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}" {% if fish.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
@@ -587,19 +587,22 @@
             }
         });
 
-        // Auto-select first category if none selected (for functionality)
+        // Form validation feedback
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
-            const categorySelect = document.getElementById('category');
             
-            if (form && categorySelect) {
+            if (form) {
                 form.addEventListener('submit', function(e) {
-                    // If no category is selected, select the first available one
-                    if (!categorySelect.value) {
-                        const firstOption = categorySelect.querySelector('option[value]:not([value=""])');
-                        if (firstOption) {
-                            categorySelect.value = firstOption.value;
-                        }
+                    // Basic client-side validation
+                    const name = document.getElementById('name').value.trim();
+                    const category = document.getElementById('category').value;
+                    const price = document.getElementById('price_per_kg').value.trim();
+                    const stock = document.getElementById('stock_kg').value.trim();
+                    
+                    if (!name || !category || !price || !stock) {
+                        e.preventDefault();
+                        alert('Please fill in all required fields: Fish Name, Category, Price, and Stock.');
+                        return false;
                     }
                 });
             }

@@ -260,11 +260,14 @@
             }
             
             .logo img {
-                position: static;
-                transform: none;
-                width: 40px;
-                height: 40px;
+                position: static !important;
+                transform: none !important;
+                left: auto !important;
+                top: auto !important;
+                width: 55px !important; /* Increased from 40px for better visibility */
+                height: 55px !important;
                 margin-right: 0.5rem;
+                vertical-align: middle;
             }
             
             .logo-text {
@@ -278,6 +281,8 @@
             
             .mobile-menu-btn {
                 display: block;
+                padding: 0.4rem 0.8rem; /* Smaller button */
+                font-size: 1.2rem; /* Slightly smaller */
             }
             
             .mobile-nav {
@@ -300,8 +305,8 @@
             }
             
             .logo img {
-                width: 35px;
-                height: 35px;
+                width: 48px !important; /* Increased from 35px for better visibility */
+                height: 48px !important;
             }
             
             .logo-text {
@@ -309,11 +314,37 @@
             }
             
             .mobile-menu-btn {
-                font-size: 1.25rem;
+                padding: 0.3rem 0.6rem; /* Even smaller button */
+                font-size: 1.1rem; /* Smaller font */
             }
             
             .mobile-nav {
                 width: 85%;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .header-content {
+                padding: 0.5rem 0.5rem;
+            }
+            
+            .logo img {
+                width: 42px !important; /* Still visible on very small screens */
+                height: 42px !important;
+                margin-right: 0.3rem;
+            }
+            
+            .logo-text {
+                font-size: 1.1rem;
+            }
+            
+            .mobile-menu-btn {
+                padding: 0.25rem 0.5rem; /* Very small button */
+                font-size: 1rem; /* Smaller font */
+            }
+            
+            .mobile-nav {
+                width: 90%;
             }
         }
 

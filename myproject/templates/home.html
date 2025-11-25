@@ -32,6 +32,101 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(226, 59, 59, 0.3);
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 1rem;
+            }
+            
+            .logo img {
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
+                transform: none !important;
+                width: 55px !important;
+                margin-right: 10px;
+                vertical-align: middle;
+            }
+            
+            .logo-text {
+                font-size: 1.5rem !important;
+                padding-left: 0 !important;
+            }
+            
+            .nav {
+                gap: 0.5rem !important;
+                flex-wrap: wrap;
+            }
+            
+            .nav a {
+                padding: 0.4rem 0.8rem !important;
+                font-size: 0.85rem !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header-content {
+                padding: 0.75rem;
+            }
+            
+            .logo img {
+                width: 48px !important;
+                margin-right: 8px;
+            }
+            
+            .logo-text {
+                font-size: 1.25rem !important;
+            }
+            
+            .nav {
+                gap: 0.25rem !important;
+            }
+            
+            .nav a {
+                padding: 0.3rem 0.6rem !important;
+                font-size: 0.75rem !important;
+            }
+            
+            /* Hide text on very small screens, keep only icons/cart emoji */
+            .nav a:not(:has(🛒)) span:not(:first-child) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-content {
+                padding: 0.5rem;
+            }
+            
+            .logo img {
+                width: 42px !important;
+                margin-right: 6px;
+            }
+            
+            .logo-text {
+                font-size: 1.1rem !important;
+            }
+            
+            .nav {
+                gap: 0.2rem !important;
+            }
+            
+            .nav a {
+                padding: 0.25rem 0.5rem !important;
+                font-size: 0.7rem !important;
+            }
+            
+            /* Hide most text, keep only essential icons */
+            .nav a span {
+                display: none;
+            }
+            
+            .nav a:has(🛒) span:last-child {
+                display: inline;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -43,20 +138,20 @@
             </a>
             <nav class="nav" style="display: flex; align-items: center; gap: 0.75rem;">
                 <a href="{% url 'fish_list' %}" style="padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
-                    Shop Fish
+                    <span>Shop Fish</span>
                 </a>
                 <a href="{% url 'cart' %}" style="display: flex; align-items: center; gap: .4rem; padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
                     <span>Cart</span>
                     <span style="font-size: 1.1rem;">🛒</span>
                 </a>
                 <a href="{% url 'order_history' %}" style="padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
-                    My Orders
+                    <span>My Orders</span>
                 </a>
                 <a href="{% url 'message_center' %}" style="padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
-                    Messages
+                    <span>Messages</span>
                 </a>
                 <a href="{% url 'logout' %}" style="padding: .5rem .9rem; background: white; color: #e23b3b; border: 2px solid #e23b3b; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
-                    Logout
+                    <span>Logout</span>
                 </a>
             </nav>
         </div>
@@ -94,10 +189,6 @@
             </div>
         </div>
     </main>
-
-    <footer class="footer">
-        <p></p>
-    </footer>
 
     <!-- Notification Container -->
     <div id="notification-container" class="notification-container"></div>

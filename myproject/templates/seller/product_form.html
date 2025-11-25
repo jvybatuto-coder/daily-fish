@@ -490,7 +490,7 @@
                                 <option value="{{ category.id }}" {% if fish.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
                             {% endfor %}
                             <!-- Fallback hardcoded options with correct IDs -->
-                            <option value="5" {% if fish.category.id == 5 %}selected{% endif %}>Fresh Fish</option>
+                            <option value="2" {% if fish.category.id == 2 %}selected{% endif %}>Saltwater Fish</option>
                             <option value="1" {% if fish.category.id == 1 %}selected{% endif %}>Freshwater Fish</option>
                             <option value="3" {% if fish.category.id == 3 %}selected{% endif %}>Shellfish</option>
                         </select>

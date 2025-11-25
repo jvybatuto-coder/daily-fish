@@ -1458,49 +1458,10 @@ def seller_product_create(request):
             )
 
         try:
-            # Validate category - be more flexible with matching
-            allowed_category_names = ['Saltwater Fish', 'Shellfish', 'Freshwater Fish']
+            # Simple category validation
             try:
-                category_name = category_id.strip()
-                
-                # First try exact match
-                if category_name in allowed_category_names:
-                    category = FishCategory.objects.get(name=category_name)
-                else:
-                    # If exact match fails, try to find any category that contains the name
-                    found_category = None
-                    for allowed_name in allowed_category_names:
-                        if allowed_name.lower() in category_name.lower() or category_name.lower() in allowed_name.lower():
-                            try:
-                                found_category = FishCategory.objects.get(name=allowed_name)
-                                break
-                            except FishCategory.DoesNotExist:
-                                continue
-                    
-                    # If still not found, try case-insensitive search
-                    if not found_category:
-                        try:
-                            found_category = FishCategory.objects.get(name__iexact=category_name)
-                        except FishCategory.DoesNotExist:
-                            pass
-                    
-                    if found_category:
-                        category = found_category
-                    else:
-                        # As last resort, get the first available category that matches our allowed list
-                        available_categories = FishCategory.objects.filter(name__in=allowed_category_names)
-                        if available_categories.exists():
-                            category = available_categories.first()
-                        else:
-                            messages.error(request, 'Please choose from the dropdown options.')
-                            return render(
-                                request,
-                                'seller/product_form.html',
-                                {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
-                            )
-                            
-            except Exception as e:
-                print(f"DEBUG CREATE: Category validation error: {e}")
+                category = FishCategory.objects.get(name=category_id)
+            except FishCategory.DoesNotExist:
                 messages.error(request, 'Please choose from the dropdown options.')
                 return render(
                     request,
@@ -1605,45 +1566,10 @@ def seller_product_edit(request, fish_id):
             return render(request, 'seller/product_form.html', context)
         
         try:
-            # Validate category - be more flexible with matching
-            allowed_category_names = ['Saltwater Fish', 'Shellfish', 'Freshwater Fish']
+            # Simple category validation
             try:
-                category_name = category_id.strip()
-                
-                # First try exact match
-                if category_name in allowed_category_names:
-                    category = FishCategory.objects.get(name=category_name)
-                else:
-                    # If exact match fails, try to find any category that contains the name
-                    found_category = None
-                    for allowed_name in allowed_category_names:
-                        if allowed_name.lower() in category_name.lower() or category_name.lower() in allowed_name.lower():
-                            try:
-                                found_category = FishCategory.objects.get(name=allowed_name)
-                                break
-                            except FishCategory.DoesNotExist:
-                                continue
-                    
-                    # If still not found, try case-insensitive search
-                    if not found_category:
-                        try:
-                            found_category = FishCategory.objects.get(name__iexact=category_name)
-                        except FishCategory.DoesNotExist:
-                            pass
-                    
-                    if found_category:
-                        category = found_category
-                    else:
-                        # As last resort, get the first available category that matches our allowed list
-                        available_categories = FishCategory.objects.filter(name__in=allowed_category_names)
-                        if available_categories.exists():
-                            category = available_categories.first()
-                        else:
-                            messages.error(request, 'Please choose from the dropdown options.')
-                            return render(request, 'seller/product_form.html', context)
-                            
-            except Exception as e:
-                print(f"DEBUG EDIT: Category validation error: {e}")
+                category = FishCategory.objects.get(name=category_id)
+            except FishCategory.DoesNotExist:
                 messages.error(request, 'Please choose from the dropdown options.')
                 return render(request, 'seller/product_form.html', context)
             

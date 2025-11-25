@@ -79,39 +79,9 @@
                 display: none;
             }
 
-            /* Add search and categories to header */
+            /* Hide mobile header right side */
             .header-right {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .search-bar {
-                display: flex;
-                align-items: center;
-                background: rgba(255, 255, 255, 0.9);
-                border: 2px solid #e23b3b;
-                border-radius: 20px;
-                padding: 0.3rem 0.8rem;
-                min-width: 150px;
-            }
-
-            .search-bar input {
-                border: none;
-                background: none;
-                outline: none;
-                font-size: 0.8rem;
-                width: 100%;
-            }
-
-            .categories-dropdown {
-                background: white;
-                border: 2px solid #e23b3b;
-                border-radius: 8px;
-                padding: 0.3rem 0.6rem;
-                font-size: 0.8rem;
-                color: #e23b3b;
-                cursor: pointer;
+                display: none;
             }
 
             /* TikTok-style footer */
@@ -193,6 +163,67 @@
                 margin-bottom: 80px;
                 padding: 1rem;
             }
+
+            /* Main content mobile adjustments */
+            main.container h1 {
+                font-size: 1.5rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            main.container h2 {
+                font-size: 1.3rem !important;
+                margin-bottom: 0.8rem !important;
+            }
+
+            main.container h3 {
+                font-size: 1.1rem !important;
+                margin-bottom: 0.6rem !important;
+            }
+
+            main.container p {
+                font-size: 0.9rem !important;
+                line-height: 1.4 !important;
+            }
+
+            main.container .btn {
+                padding: 0.6rem 1rem !important;
+                font-size: 0.9rem !important;
+                border-radius: 6px !important;
+            }
+
+            main.container .btn-primary {
+                padding: 0.7rem 1.2rem !important;
+                font-size: 0.95rem !important;
+            }
+
+            main.container input,
+            main.container select,
+            main.container textarea {
+                font-size: 0.9rem !important;
+                padding: 0.6rem !important;
+            }
+
+            main.container .form-group {
+                margin-bottom: 1rem !important;
+            }
+
+            main.container .card {
+                margin-bottom: 1rem !important;
+                padding: 1rem !important;
+            }
+
+            main.container .search-bar {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+
+            main.container .search-bar input,
+            main.container .search-bar select,
+            main.container .search-bar button {
+                width: 100% !important;
+                font-size: 0.9rem !important;
+                padding: 0.6rem !important;
+            }
         }
 
         @media (max-width: 576px) {
@@ -209,20 +240,6 @@
                 font-size: 1.3rem;
             }
 
-            .search-bar {
-                min-width: 120px;
-                padding: 0.25rem 0.6rem;
-            }
-
-            .search-bar input {
-                font-size: 0.75rem;
-            }
-
-            .categories-dropdown {
-                padding: 0.25rem 0.5rem;
-                font-size: 0.75rem;
-            }
-
             .mobile-footer-nav a i {
                 font-size: 1.1rem;
             }
@@ -233,6 +250,33 @@
 
             main.container {
                 padding: 0.75rem;
+            }
+
+            /* Even smaller fonts for mobile */
+            main.container h1 {
+                font-size: 1.4rem !important;
+            }
+
+            main.container h2 {
+                font-size: 1.2rem !important;
+            }
+
+            main.container h3 {
+                font-size: 1rem !important;
+            }
+
+            main.container p {
+                font-size: 0.85rem !important;
+            }
+
+            main.container .btn {
+                padding: 0.5rem 0.8rem !important;
+                font-size: 0.85rem !important;
+            }
+
+            main.container .btn-primary {
+                padding: 0.6rem 1rem !important;
+                font-size: 0.9rem !important;
             }
         }
 
@@ -250,20 +294,6 @@
                 font-size: 1.1rem;
             }
 
-            .search-bar {
-                min-width: 100px;
-                padding: 0.2rem 0.5rem;
-            }
-
-            .search-bar input {
-                font-size: 0.7rem;
-            }
-
-            .categories-dropdown {
-                padding: 0.2rem 0.4rem;
-                font-size: 0.7rem;
-            }
-
             .mobile-footer-nav a {
                 min-width: 50px;
                 padding: 0.4rem;
@@ -279,6 +309,33 @@
 
             main.container {
                 padding: 0.5rem;
+            }
+
+            /* Ultra-small fonts for very small screens */
+            main.container h1 {
+                font-size: 1.3rem !important;
+            }
+
+            main.container h2 {
+                font-size: 1.1rem !important;
+            }
+
+            main.container h3 {
+                font-size: 0.95rem !important;
+            }
+
+            main.container p {
+                font-size: 0.8rem !important;
+            }
+
+            main.container .btn {
+                padding: 0.4rem 0.6rem !important;
+                font-size: 0.8rem !important;
+            }
+
+            main.container .btn-primary {
+                padding: 0.5rem 0.8rem !important;
+                font-size: 0.85rem !important;
             }
         }
     </style>
@@ -308,18 +365,6 @@
                     <a href="{% url 'login' %}">Login</a>
                 {% endif %}
             </nav>
-            <!-- Mobile header right side with search and categories -->
-            <div class="header-right">
-                <div class="search-bar">
-                    <input type="text" placeholder="Search fish..." id="mobileSearch">
-                </div>
-                <select class="categories-dropdown" id="mobileCategories">
-                    <option value="">All</option>
-                    <option value="fresh">Fresh</option>
-                    <option value="frozen">Frozen</option>
-                    <option value="processed">Processed</option>
-                </select>
-            </div>
         </div>
     </header>
 
@@ -1132,40 +1177,10 @@
             });
         }
 
-        // Sync search functionality between desktop and mobile
-        function syncSearchFunctionality() {
-            const mobileSearch = document.getElementById('mobileSearch');
-            const desktopSearch = document.querySelector('input[name="search"]');
-            const mobileCategories = document.getElementById('mobileCategories');
-            const desktopCategories = document.querySelector('select[name="category"]');
-            
-            if (mobileSearch && desktopSearch) {
-                mobileSearch.addEventListener('input', function() {
-                    desktopSearch.value = this.value;
-                });
-                
-                desktopSearch.addEventListener('input', function() {
-                    mobileSearch.value = this.value;
-                });
-            }
-            
-            if (mobileCategories && desktopCategories) {
-                mobileCategories.addEventListener('change', function() {
-                    desktopCategories.value = this.value;
-                    desktopCategories.form.submit();
-                });
-                
-                desktopCategories.addEventListener('change', function() {
-                    mobileCategories.value = this.value;
-                });
-            }
-        }
-
         // Initialize mobile functionality
         document.addEventListener('DOMContentLoaded', function() {
             syncCartCount();
             setActiveFooterNav();
-            syncSearchFunctionality();
             
             // Update cart count periodically
             setInterval(syncCartCount, 1000);

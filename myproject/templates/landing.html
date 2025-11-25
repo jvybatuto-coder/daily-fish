@@ -646,17 +646,16 @@
             }
 
             .logo img {
-                position: absolute;
-                left: -120px; /* Adjusted for mobile */
-                top: 50%;
-                transform: translateY(-50%);
-                width: 120px; /* Match login page mobile logo size */
+                position: relative;
+                margin-right: 10px;
+                width: 40px; /* Small visible logo for mobile */
                 height: auto;
+                vertical-align: middle;
             }
 
             .logo-text {
                 font-size: 1.5rem; /* Smaller text for mobile */
-                padding-left: 15px;
+                padding-left: 0; /* Remove padding since logo is now inline */
             }
 
             .nav-links {
@@ -689,17 +688,16 @@
             }
 
             .logo img {
-                position: absolute;
-                left: -90px; /* Further adjusted for small mobile */
-                top: 50%;
-                transform: translateY(-50%);
-                width: 90px; /* Match login page small mobile logo size */
+                position: relative;
+                margin-right: 8px;
+                width: 35px; /* Even smaller logo for small mobile */
                 height: auto;
+                vertical-align: middle;
             }
 
             .logo-text {
                 font-size: 1.25rem; /* Even smaller text */
-                padding-left: 12px;
+                padding-left: 0; /* Remove padding since logo is now inline */
             }
 
             .nav-links {
@@ -763,13 +761,13 @@
             }
 
             .logo img {
-                left: -75px;
-                width: 75px; /* Even smaller for ultra-small screens */
+                margin-right: 6px;
+                width: 30px; /* Small logo for ultra-small screens */
             }
 
             .logo-text {
                 font-size: 1.1rem;
-                padding-left: 10px;
+                padding-left: 0; /* Remove padding since logo is now inline */
             }
 
             .nav-links {

@@ -482,9 +482,9 @@
                         <input type="text" id="name" name="name" value="{{ fish.name|default:'' }}" required>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" style="display: none;">
                         <label for="category">Category</label>
-                        <select id="category" name="category" required>
+                        <select id="category" name="category">
                             <option value="">Select category</option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}" {% if fish.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
@@ -527,7 +527,7 @@
                         <p class="field-help">Upload a new image (JPG, PNG, max 5MB)</p>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" style="display: none;">
                         <label for="image_url">Or use image URL</label>
                         <input type="url" id="image_url" name="image_url" value="{{ fish.image_url|default:'' }}" placeholder="https://example.com/image.jpg">
                         <p class="field-help">Enter a direct image URL if you don't want to upload a file</p>
@@ -584,6 +584,24 @@
                 e.target !== mobileMenuToggle && 
                 !mobileMenuToggle.contains(e.target)) {
                 sidebar.classList.remove('active');
+            }
+        });
+
+        // Auto-select first category if none selected (for functionality)
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const categorySelect = document.getElementById('category');
+            
+            if (form && categorySelect) {
+                form.addEventListener('submit', function(e) {
+                    // If no category is selected, select the first available one
+                    if (!categorySelect.value) {
+                        const firstOption = categorySelect.querySelector('option[value]:not([value=""])');
+                        if (firstOption) {
+                            categorySelect.value = firstOption.value;
+                        }
+                    }
+                });
             }
         });
     </script>

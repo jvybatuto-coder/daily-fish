@@ -1462,7 +1462,14 @@ def seller_product_create(request):
             allowed_category_names = ['Saltwater Fish', 'Shellfish', 'Freshwater Fish']
             try:
                 category_name = category_id.strip()  # category_id now contains the name
+                print(f"DEBUG CREATE: Received category_name: '{category_name}'")
+                print(f"DEBUG CREATE: Allowed categories: {allowed_category_names}")
+                print(f"DEBUG CREATE: Is in allowed list: {category_name in allowed_category_names}")
+                
                 if category_name not in allowed_category_names:
+                    # Show available categories for debugging
+                    available_cats = list(FishCategory.objects.values_list('name', flat=True))
+                    print(f"DEBUG CREATE: Available categories in DB: {available_cats}")
                     messages.error(request, 'Please choose from the dropdown options.')
                     return render(
                         request,
@@ -1471,6 +1478,10 @@ def seller_product_create(request):
                     )
                 category = FishCategory.objects.get(name=category_name)
             except FishCategory.DoesNotExist:
+                print(f"DEBUG CREATE: Category '{category_name}' not found in database")
+                # Show available categories for debugging
+                available_cats = list(FishCategory.objects.values_list('name', flat=True))
+                print(f"DEBUG CREATE: Available categories in DB: {available_cats}")
                 messages.error(request, 'Please choose from the dropdown options.')
                 return render(
                     request,
@@ -1579,11 +1590,16 @@ def seller_product_edit(request, fish_id):
             allowed_category_names = ['Saltwater Fish', 'Shellfish', 'Freshwater Fish']
             try:
                 category_name = category_id.strip()  # category_id now contains the name
+                print(f"DEBUG: Received category_name: '{category_name}'")
+                print(f"DEBUG: Allowed categories: {allowed_category_names}")
+                print(f"DEBUG: Is in allowed list: {category_name in allowed_category_names}")
+                
                 if category_name not in allowed_category_names:
                     messages.error(request, 'Please choose from the dropdown options.')
                     return render(request, 'seller/product_form.html', context)
                 category = FishCategory.objects.get(name=category_name)
             except FishCategory.DoesNotExist:
+                print(f"DEBUG: Category '{category_name}' not found in database")
                 messages.error(request, 'Please choose from the dropdown options.')
                 return render(request, 'seller/product_form.html', context)
             

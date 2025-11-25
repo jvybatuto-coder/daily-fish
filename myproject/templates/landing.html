@@ -646,11 +646,14 @@
             }
 
             .logo img {
-                position: relative;
+                position: relative !important;
                 margin-right: 10px;
-                width: 40px; /* Small visible logo for mobile */
+                width: 45px !important; /* Slightly larger for better visibility */
                 height: auto;
                 vertical-align: middle;
+                left: auto !important; /* Override desktop positioning */
+                top: auto !important; /* Override desktop positioning */
+                transform: none !important; /* Override desktop positioning */
             }
 
             .logo-text {
@@ -688,11 +691,14 @@
             }
 
             .logo img {
-                position: relative;
+                position: relative !important;
                 margin-right: 8px;
-                width: 35px; /* Even smaller logo for small mobile */
+                width: 40px !important; /* Good size for small mobile */
                 height: auto;
                 vertical-align: middle;
+                left: auto !important;
+                top: auto !important;
+                transform: none !important;
             }
 
             .logo-text {
@@ -761,8 +767,14 @@
             }
 
             .logo img {
+                position: relative !important;
                 margin-right: 6px;
-                width: 30px; /* Small logo for ultra-small screens */
+                width: 35px !important; /* Still visible on ultra-small screens */
+                height: auto;
+                vertical-align: middle;
+                left: auto !important;
+                top: auto !important;
+                transform: none !important;
             }
 
             .logo-text {

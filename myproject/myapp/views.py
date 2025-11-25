@@ -961,6 +961,20 @@ def location_select(request):
 
 # --- Admin Panel Views ---
 @login_required
+def admin_products(request):
+    if not request.user.is_staff:
+        return redirect('home')
+    search = request.GET.get('search', '')
+    qs = Fish.objects.all()
+    if search:
+        qs = qs.filter(Q(name__icontains=search) | Q(description__icontains=search))
+    categories = FishCategory.objects.all()
+    return render(request, 'admin/products.html', {
+        'fish_list': qs.order_by('-updated_at')[:200],
+        'categories': categories,
+    })
+
+@login_required
 def admin_orders(request):
     if not request.user.is_staff:
         return redirect('home')
@@ -1395,8 +1409,166 @@ def seller_dashboard(request):
     return render(request, 'seller/dashboard.html', context)
 
 
+@login_required
+def seller_products(request):
+    """List all fish products for the current DailyFish seller."""
+    if not request.user.is_staff:
+        return redirect('home')
+
+    # Show all products if user is staff, otherwise filter by seller
+    if request.user.is_superuser:
+        seller_fish = Fish.objects.all().order_by('-created_at')
+    else:
+        seller_fish = Fish.objects.filter(seller=request.user).order_by('-created_at')
+    
+    categories = FishCategory.objects.all()
+
+    context = {
+        'seller_name': request.user.username,
+        'fish_list': seller_fish,
+        'categories': categories,
+        'is_superuser': request.user.is_superuser
+    }
+    return render(request, 'seller/products.html', context)
 
 
+@login_required
+def seller_product_create(request):
+    """Create a new fish product for the current DailyFish seller."""
+    if not request.user.is_staff:
+        return redirect('home')
+
+    categories = FishCategory.objects.all()
+
+    if request.method == 'POST':
+        name = (request.POST.get('name') or '').strip()
+        description = (request.POST.get('description') or '').strip()
+        category_id = request.POST.get('category')
+        price_raw = (request.POST.get('price_per_kg') or '').strip()
+        stock_raw = (request.POST.get('stock_kg') or '').strip()
+        image = request.FILES.get('image')
+        image_url = (request.POST.get('image_url') or '').strip()
+
+        if not name or not category_id or not price_raw or not stock_raw:
+            messages.error(request, 'Please fill in all required fields for the new fish.')
+            return render(
+                request,
+                'seller/product_form.html',
+                {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+            )
+
+        try:
+            category = FishCategory.objects.get(id=category_id)
+            price = Decimal(price_raw)
+            stock = Decimal(stock_raw)
+        except (FishCategory.DoesNotExist, InvalidOperation):
+            messages.error(request, 'Invalid category, price, or stock value.')
+            return render(
+                request,
+                'seller/product_form.html',
+                {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+            )
+
+        fish = Fish(
+            name=name,
+            description=description,
+            category=category,
+            seller=request.user,
+            price_per_kg=price,
+            stock_kg=stock,
+            is_available=True,
+        )
+
+        if image:
+            fish.image = image
+        elif image_url:
+            fish.image_url = image_url
+
+        fish.save()
+        messages.success(request, f'Seller product "{fish.name}" has been created successfully.')
+        return redirect('seller_products')
+
+    return render(
+        request,
+        'seller/product_form.html',
+        {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+    )
+
+
+@login_required
+def seller_product_edit(request, fish_id):
+    """Edit an existing fish product owned by the current DailyFish seller."""
+    if not request.user.is_staff:
+        return redirect('home')
+
+    # Superusers can edit any fish; regular staff can edit only their own
+    if request.user.is_superuser:
+        fish = get_object_or_404(Fish, id=fish_id)
+    else:
+        fish = get_object_or_404(Fish, id=fish_id, seller=request.user)
+    categories = FishCategory.objects.all()
+
+    if request.method == 'POST':
+        name = (request.POST.get('name') or '').strip()
+        description = (request.POST.get('description') or '').strip()
+        category_id = request.POST.get('category')
+        price_raw = (request.POST.get('price_per_kg') or '').strip()
+        stock_raw = (request.POST.get('stock_kg') or '').strip()
+        image = request.FILES.get('image')
+        image_url = (request.POST.get('image_url') or '').strip()
+
+        if not name or not category_id or not price_raw or not stock_raw:
+            messages.error(request, 'Please fill in all required fields for the fish.')
+        else:
+            try:
+                category = FishCategory.objects.get(id=category_id)
+                price = Decimal(price_raw)
+                stock = Decimal(stock_raw)
+            except (FishCategory.DoesNotExist, InvalidOperation):
+                messages.error(request, 'Invalid category, price, or stock value.')
+            else:
+                fish.name = name
+                fish.description = description
+                fish.category = category
+                fish.price_per_kg = price
+                fish.stock_kg = stock
+
+                if image:
+                    fish.image = image
+                    fish.image_url = ''
+                elif image_url:
+                    fish.image_url = image_url
+
+                fish.save()
+                messages.success(request, f'Seller product "{fish.name}" has been updated successfully.')
+                return redirect('seller_products')
+
+    context = {
+        'seller_name': request.user.username,
+        'fish': fish,
+        'categories': categories,
+        'mode': 'edit',
+    }
+    return render(request, 'seller/product_form.html', context)
+
+
+@login_required
+def seller_product_delete(request, fish_id):
+    """Soft-delete a fish product for the current DailyFish seller by marking it unavailable."""
+    if not request.user.is_staff:
+        return redirect('home')
+
+    fish = get_object_or_404(Fish, id=fish_id, seller=request.user)
+
+    if request.method == 'POST':
+        fish.is_available = False
+        fish.stock_kg = Decimal('0.00')
+        fish.save()
+        messages.success(request, f'Seller product "{fish.name}" has been removed from the marketplace.')
+    else:
+        messages.error(request, 'Invalid request method for deleting a product.')
+
+    return redirect('seller_products')
 
 
 @login_required

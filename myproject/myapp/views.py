@@ -1458,11 +1458,55 @@ def seller_product_create(request):
             )
 
         try:
-            category = FishCategory.objects.get(id=category_id)
-            price = Decimal(price_raw)
-            stock = Decimal(stock_raw)
-        except (FishCategory.DoesNotExist, InvalidOperation):
-            messages.error(request, 'Invalid category, price, or stock value.')
+            # Validate category
+            try:
+                category = FishCategory.objects.get(id=category_id)
+            except FishCategory.DoesNotExist:
+                messages.error(request, 'Please select a valid category.')
+                return render(
+                    request,
+                    'seller/product_form.html',
+                    {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                )
+            
+            # Validate price
+            try:
+                price = Decimal(price_raw)
+                if price <= 0:
+                    messages.error(request, 'Price must be greater than 0.')
+                    return render(
+                        request,
+                        'seller/product_form.html',
+                        {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                    )
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid price number.')
+                return render(
+                    request,
+                    'seller/product_form.html',
+                    {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                )
+            
+            # Validate stock
+            try:
+                stock = Decimal(stock_raw)
+                if stock < 0:
+                    messages.error(request, 'Stock cannot be negative.')
+                    return render(
+                        request,
+                        'seller/product_form.html',
+                        {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                    )
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid stock number.')
+                return render(
+                    request,
+                    'seller/product_form.html',
+                    {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                )
+                
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
             return render(
                 request,
                 'seller/product_form.html',
@@ -1519,29 +1563,56 @@ def seller_product_edit(request, fish_id):
 
         if not name or not category_id or not price_raw or not stock_raw:
             messages.error(request, 'Please fill in all required fields for the fish.')
-        else:
+            return render(request, 'seller/product_form.html', context)
+        
+        try:
+            # Validate category
             try:
                 category = FishCategory.objects.get(id=category_id)
+            except FishCategory.DoesNotExist:
+                messages.error(request, 'Please select a valid category.')
+                return render(request, 'seller/product_form.html', context)
+            
+            # Validate price
+            try:
                 price = Decimal(price_raw)
+                if price <= 0:
+                    messages.error(request, 'Price must be greater than 0.')
+                    return render(request, 'seller/product_form.html', context)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid price number.')
+                return render(request, 'seller/product_form.html', context)
+            
+            # Validate stock
+            try:
                 stock = Decimal(stock_raw)
-            except (FishCategory.DoesNotExist, InvalidOperation):
-                messages.error(request, 'Invalid category, price, or stock value.')
-            else:
-                fish.name = name
-                fish.description = description
-                fish.category = category
-                fish.price_per_kg = price
-                fish.stock_kg = stock
+                if stock < 0:
+                    messages.error(request, 'Stock cannot be negative.')
+                    return render(request, 'seller/product_form.html', context)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid stock number.')
+                return render(request, 'seller/product_form.html', context)
+                
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+            return render(request, 'seller/product_form.html', context)
 
-                if image:
-                    fish.image = image
-                    fish.image_url = ''
-                elif image_url:
-                    fish.image_url = image_url
+        # If all validation passed, update the fish
+        fish.name = name
+        fish.description = description
+        fish.category = category
+        fish.price_per_kg = price
+        fish.stock_kg = stock
 
-                fish.save()
-                messages.success(request, f'Seller product "{fish.name}" has been updated successfully.')
-                return redirect('seller_products')
+        if image:
+            fish.image = image
+            fish.image_url = ''
+        elif image_url:
+            fish.image_url = image_url
+
+        fish.save()
+        messages.success(request, f'Seller product "{fish.name}" has been updated successfully.')
+        return redirect('seller_products')
 
     context = {
         'seller_name': request.user.username,

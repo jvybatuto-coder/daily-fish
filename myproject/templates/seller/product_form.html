@@ -489,10 +489,6 @@
                             {% for category in categories %}
                                 <option value="{{ category.id }}" {% if fish.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
                             {% endfor %}
-                            <!-- Fallback hardcoded options with correct IDs -->
-                            <option value="2" {% if fish.category.id == 2 %}selected{% endif %}>Saltwater Fish</option>
-                            <option value="1" {% if fish.category.id == 1 %}selected{% endif %}>Freshwater Fish</option>
-                            <option value="3" {% if fish.category.id == 3 %}selected{% endif %}>Shellfish</option>
                         </select>
                         <p class="field-help">Choose the category that best describes your fish product</p>
                     </div>
@@ -604,11 +600,30 @@
                     const price = document.getElementById('price_per_kg').value.trim();
                     const stock = document.getElementById('stock_kg').value.trim();
                     
+                    // Validate required fields
                     if (!name || !category || !price || !stock) {
                         e.preventDefault();
                         alert('Please fill in all required fields: Fish Name, Category, Price, and Stock.');
                         return false;
                     }
+                    
+                    // Validate price
+                    const priceNum = parseFloat(price);
+                    if (isNaN(priceNum) || priceNum <= 0) {
+                        e.preventDefault();
+                        alert('Price must be a valid number greater than 0.');
+                        return false;
+                    }
+                    
+                    // Validate stock
+                    const stockNum = parseFloat(stock);
+                    if (isNaN(stockNum) || stockNum < 0) {
+                        e.preventDefault();
+                        alert('Stock must be a valid number (0 or greater).');
+                        return false;
+                    }
+                    
+                    return true;
                 });
             }
         });

@@ -1446,10 +1446,11 @@ def seller_product_create(request):
         category_id = request.POST.get('category')
         price_raw = (request.POST.get('price_per_kg') or '').strip()
         stock_raw = (request.POST.get('stock_kg') or '').strip()
+        harvest_date_raw = (request.POST.get('harvest_date') or '').strip()
         image = request.FILES.get('image')
         image_url = (request.POST.get('image_url') or '').strip()
 
-        if not name or not category_id or not price_raw or not stock_raw:
+        if not name or not category_id or not price_raw or not stock_raw or not harvest_date_raw:
             messages.error(request, 'Please fill in all required fields for the new fish.')
             return render(
                 request,
@@ -1458,11 +1459,20 @@ def seller_product_create(request):
             )
 
         try:
-            # Validate category
+            # Validate category - only allow specific category names
+            allowed_category_names = ['Saltwater Fish', 'Shellfish', 'Freshwater Fish']
             try:
-                category = FishCategory.objects.get(id=category_id)
+                category_name = category_id.strip()  # category_id now contains the name
+                if category_name not in allowed_category_names:
+                    messages.error(request, 'Please choose from the dropdown options.')
+                    return render(
+                        request,
+                        'seller/product_form.html',
+                        {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                    )
+                category = FishCategory.objects.get(name=category_name)
             except FishCategory.DoesNotExist:
-                messages.error(request, 'Please select a valid category.')
+                messages.error(request, 'Please choose from the dropdown options.')
                 return render(
                     request,
                     'seller/product_form.html',
@@ -1504,6 +1514,27 @@ def seller_product_create(request):
                     'seller/product_form.html',
                     {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
                 )
+            
+            # Validate harvest date
+            try:
+                from datetime import datetime
+                harvest_date = datetime.strptime(harvest_date_raw, '%Y-%m-%d').date()
+                # Check if date is not in the future
+                from datetime import date
+                if harvest_date > date.today():
+                    messages.error(request, 'Harvest date cannot be in the future.')
+                    return render(
+                        request,
+                        'seller/product_form.html',
+                        {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                    )
+            except ValueError:
+                messages.error(request, 'Please enter a valid harvest date.')
+                return render(
+                    request,
+                    'seller/product_form.html',
+                    {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                )
                 
         except Exception as e:
             messages.error(request, f'An error occurred: {str(e)}')
@@ -1520,6 +1551,7 @@ def seller_product_create(request):
             seller=request.user,
             price_per_kg=price,
             stock_kg=stock,
+            harvest_date=harvest_date,
             is_available=True,
         )
 
@@ -1558,19 +1590,25 @@ def seller_product_edit(request, fish_id):
         category_id = request.POST.get('category')
         price_raw = (request.POST.get('price_per_kg') or '').strip()
         stock_raw = (request.POST.get('stock_kg') or '').strip()
+        harvest_date_raw = (request.POST.get('harvest_date') or '').strip()
         image = request.FILES.get('image')
         image_url = (request.POST.get('image_url') or '').strip()
 
-        if not name or not category_id or not price_raw or not stock_raw:
+        if not name or not category_id or not price_raw or not stock_raw or not harvest_date_raw:
             messages.error(request, 'Please fill in all required fields for the fish.')
             return render(request, 'seller/product_form.html', context)
         
         try:
-            # Validate category
+            # Validate category - only allow specific category names
+            allowed_category_names = ['Saltwater Fish', 'Shellfish', 'Freshwater Fish']
             try:
-                category = FishCategory.objects.get(id=category_id)
+                category_name = category_id.strip()  # category_id now contains the name
+                if category_name not in allowed_category_names:
+                    messages.error(request, 'Please choose from the dropdown options.')
+                    return render(request, 'seller/product_form.html', context)
+                category = FishCategory.objects.get(name=category_name)
             except FishCategory.DoesNotExist:
-                messages.error(request, 'Please select a valid category.')
+                messages.error(request, 'Please choose from the dropdown options.')
                 return render(request, 'seller/product_form.html', context)
             
             # Validate price
@@ -1592,6 +1630,19 @@ def seller_product_edit(request, fish_id):
             except (InvalidOperation, ValueError):
                 messages.error(request, 'Please enter a valid stock number.')
                 return render(request, 'seller/product_form.html', context)
+            
+            # Validate harvest date
+            try:
+                from datetime import datetime
+                harvest_date = datetime.strptime(harvest_date_raw, '%Y-%m-%d').date()
+                # Check if date is not in the future
+                from datetime import date
+                if harvest_date > date.today():
+                    messages.error(request, 'Harvest date cannot be in the future.')
+                    return render(request, 'seller/product_form.html', context)
+            except ValueError:
+                messages.error(request, 'Please enter a valid harvest date.')
+                return render(request, 'seller/product_form.html', context)
                 
         except Exception as e:
             messages.error(request, f'An error occurred: {str(e)}')
@@ -1603,6 +1654,7 @@ def seller_product_edit(request, fish_id):
         fish.category = category
         fish.price_per_kg = price
         fish.stock_kg = stock
+        fish.harvest_date = harvest_date
 
         if image:
             fish.image = image

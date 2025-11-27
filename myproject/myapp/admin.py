@@ -12,7 +12,7 @@ class FishCategoryAdmin(admin.ModelAdmin):
 class FishAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price_per_kg', 'stock_kg', 'is_available', 'stock_status_badge', 'created_at']
     list_filter = ['category', 'is_available', 'created_at']
-    search_fields = ['name', 'description']
+    search_fields = ['name']
     list_editable = ['price_per_kg', 'stock_kg', 'is_available']
     ordering = ['-created_at']
     fieldsets = (

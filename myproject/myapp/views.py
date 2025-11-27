@@ -495,7 +495,7 @@ def fish_list(request):
     if search_query:
         fish_items = fish_items.filter(
             Q(name__icontains=search_query) | 
-            Q(description__icontains=search_query)
+            Q(name__icontains=search_query)
         )
     
     # Apply category filter
@@ -654,8 +654,8 @@ def add_to_cart(request, fish_id):
             
             if not created:
                 cart_item.quantity_kg += quantity_kg
-                if cart_item.quantity_kg > fish.stock_kg:
-                    cart_item.quantity_kg = fish.stock_kg
+                if cart_item.quantity_kg > cart_item.fish.stock_kg:
+                    cart_item.quantity_kg = cart_item.fish.stock_kg
                 cart_item.save()
             
             return JsonResponse({
@@ -1445,12 +1445,14 @@ def seller_product_create(request):
         description = (request.POST.get('description') or '').strip()
         category_id = request.POST.get('category')
         price_raw = (request.POST.get('price_per_kg') or '').strip()
-        stock_raw = (request.POST.get('stock_kg') or '').strip()
+        weight_raw = (request.POST.get('weight_kg') or '').strip()
+        total_price_raw = (request.POST.get('total_price') or '').strip()
+        date_purchased_raw = (request.POST.get('date_purchased') or '').strip()
         image = request.FILES.get('image')
         image_url = (request.POST.get('image_url') or '').strip()
 
-        if not name or not category_id or not price_raw or not stock_raw:
-            messages.error(request, 'Please fill in all required fields for the new fish.')
+        if not name or not category_id or not price_raw or not weight_raw or not total_price_raw or not date_purchased_raw:
+            messages.error(request, 'Please fill in all required fields: Fish Name, Category, Price per kg, Weight, Total Price, and Date Purchased.')
             return render(
                 request,
                 'seller/product_form.html',
@@ -1487,18 +1489,48 @@ def seller_product_create(request):
                     {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
                 )
             
-            # Validate stock
+            # Validate weight
             try:
-                stock = Decimal(stock_raw)
-                if stock < 0:
-                    messages.error(request, 'Stock cannot be negative.')
+                weight = Decimal(weight_raw)
+                if weight <= 0:
+                    messages.error(request, 'Weight must be greater than 0.')
                     return render(
                         request,
                         'seller/product_form.html',
                         {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
                     )
             except (InvalidOperation, ValueError):
-                messages.error(request, 'Please enter a valid stock number.')
+                messages.error(request, 'Please enter a valid weight number.')
+                return render(
+                    request,
+                    'seller/product_form.html',
+                    {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                )
+            
+            # Validate total price
+            try:
+                total_price = Decimal(total_price_raw)
+                if total_price <= 0:
+                    messages.error(request, 'Total price must be greater than 0.')
+                    return render(
+                        request,
+                        'seller/product_form.html',
+                        {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                    )
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid total price number.')
+                return render(
+                    request,
+                    'seller/product_form.html',
+                    {'categories': categories, 'mode': 'create', 'seller_name': request.user.username},
+                )
+            
+            # Validate date purchased
+            try:
+                from datetime import datetime
+                date_purchased = datetime.strptime(date_purchased_raw, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, 'Please enter a valid date.')
                 return render(
                     request,
                     'seller/product_form.html',
@@ -1519,7 +1551,9 @@ def seller_product_create(request):
             category=category,
             seller=request.user,
             price_per_kg=price,
-            stock_kg=stock,
+            weight_kg=weight,
+            total_price=total_price,
+            date_purchased=date_purchased,
             is_available=True,
         )
 
@@ -1551,6 +1585,13 @@ def seller_product_edit(request, fish_id):
     else:
         fish = get_object_or_404(Fish, id=fish_id, seller=request.user)
     categories = FishCategory.objects.all()
+
+    context = {
+        'seller_name': request.user.username,
+        'fish': fish,
+        'categories': categories,
+        'mode': 'edit',
+    }
 
     if request.method == 'POST':
         name = (request.POST.get('name') or '').strip()
@@ -1614,12 +1655,6 @@ def seller_product_edit(request, fish_id):
         messages.success(request, f'Seller product "{fish.name}" has been updated successfully.')
         return redirect('seller_products')
 
-    context = {
-        'seller_name': request.user.username,
-        'fish': fish,
-        'categories': categories,
-        'mode': 'edit',
-    }
     return render(request, 'seller/product_form.html', context)
 
 
@@ -1633,7 +1668,7 @@ def seller_product_delete(request, fish_id):
 
     if request.method == 'POST':
         fish.is_available = False
-        fish.stock_kg = Decimal('0.00')
+        fish.weight_kg = Decimal('0.00')
         fish.save()
         messages.success(request, f'Seller product "{fish.name}" has been removed from the marketplace.')
     else:

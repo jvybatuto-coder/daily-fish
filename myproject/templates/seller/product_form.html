@@ -466,8 +466,8 @@
                     <h1 class="seller-title">Edit Product</h1>
                     <p class="seller-subtitle">Update the details for this fish product. Changes will be reflected immediately.</p>
                 {% else %}
-                    <h1 class="seller-title">Add New Product</h1>
-                    <p class="seller-subtitle">List a new fish product to start selling on DailyFish.</p>
+                    <h1 class="seller-title">Add New Fish</h1>
+                    <p class="seller-subtitle">List a new fish product with all the required details to start selling on DailyFish.</p>
                 {% endif %}
             </div>
         </header>
@@ -480,40 +480,59 @@
                     <div class="form-group">
                         <label for="name">Fish Name</label>
                         <input type="text" id="name" name="name" value="{{ fish.name|default:'' }}" required>
+                        <p class="field-help">Example: Bangus, Tilapia, Galunggong</p>
                     </div>
 
                     <div class="form-group">
-                        <label for="category">Category</label>
+                        <label for="category">Fish Category</label>
                         <select id="category" name="category" required>
-                            <option value="">Choose from the dropdown options</option>
+                            <option value="">Choose a category</option>
+                            <option value="Fresh Fish" {% if fish.category.name == 'Fresh Fish' %}selected{% endif %}>Fresh Fish</option>
                             <option value="Saltwater Fish" {% if fish.category.name == 'Saltwater Fish' %}selected{% endif %}>Saltwater Fish</option>
-                            <option value="Shellfish" {% if fish.category.name == 'Shellfish' %}selected{% endif %}>Shellfish</option>
-                            <option value="Freshwater Fish" {% if fish.category.name == 'Freshwater Fish' %}selected{% endif %}>Freshwater Fish</option>
+                            <option value="Local Fish" {% if fish.category.name == 'Local Fish' %}selected{% endif %}>Local Fish</option>
+                            <option value="Premium Fish" {% if fish.category.name == 'Premium Fish' %}selected{% endif %}>Premium Fish</option>
                         </select>
-                        <p class="field-help">Choose the category that best describes your fish product</p>
+                        <p class="field-help">Select the appropriate category for your fish</p>
                     </div>
 
                     <div class="form-group">
-                        <label for="price_per_kg">Price per kg (₱)</label>
+                        <label for="weight_kg">Weight (kg)</label>
+                        <div style="position: relative;">
+                            <input type="number" step="0.01" min="0" id="weight_kg" name="weight_kg" value="{{ fish.weight_kg|default:'' }}" required 
+                                   style="padding-right: 40px;">
+                            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #888;">kg</span>
+                        </div>
+                        <p class="field-help">How many kilograms of fish</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price_per_kg">Price per kg</label>
                         <div style="position: relative;">
                             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;">₱</span>
                             <input type="number" step="0.01" min="0" id="price_per_kg" name="price_per_kg" value="{{ fish.price_per_kg|default:'' }}" required 
                                    style="padding-left: 30px;">
                         </div>
+                        <p class="field-help">Example: ₱120 per kg</p>
                     </div>
 
                     <div class="form-group">
-                        <label for="stock_kg">Stock (kg)</label>
+                        <label for="total_price">Total Price</label>
                         <div style="position: relative;">
-                            <input type="number" step="0.01" min="0" id="stock_kg" name="stock_kg" value="{{ fish.stock_kg|default:'' }}" required 
-                                   style="padding-right: 40px;">
-                            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #888;">kg</span>
+                            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;">₱</span>
+                            <input type="number" step="0.01" min="0" id="total_price" name="total_price" value="{{ fish.total_price|default:'' }}" required 
+                                   style="padding-left: 30px;">
                         </div>
-                        <p class="field-help">Buyers will only see that stock is available; exact quantity is only visible to you.</p>
+                        <p class="field-help">Automatically calculated or manually added</p>
                     </div>
 
                     <div class="form-group">
-                        <label for="image">Image Upload</label>
+                        <label for="date_purchased">Date Purchased</label>
+                        <input type="date" id="date_purchased" name="date_purchased" value="{{ fish.date_purchased|default:'' }}" required>
+                        <p class="field-help">To track freshness</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="image">Fish Image</label>
                         <div style="position: relative; margin-bottom: 0.5rem;">
                             <input type="file" id="image" name="image" accept="image/*" style="padding: 0.5rem 0;">
                         </div>
@@ -525,21 +544,10 @@
                             </a>
                         </div>
                         {% endif %}
-                        <p class="field-help">Upload a new image (JPG, PNG, max 5MB)</p>
-                    </div>
-
-                    <div class="form-group" style="display: none;">
-                        <label for="image_url">Or use image URL</label>
-                        <input type="url" id="image_url" name="image_url" value="{{ fish.image_url|default:'' }}" placeholder="https://example.com/image.jpg">
-                        <p class="field-help">Enter a direct image URL if you don't want to upload a file</p>
+                        <p class="field-help">Photo of the fish being sold</p>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 1.5rem;">
-                    <label for="description">Product Description</label>
-                    <textarea id="description" name="description" placeholder="Enter a detailed description of the fish...">{{ fish.description|default:'' }}</textarea>
-                    <p class="field-help">Tell buyers about the fish's characteristics, freshness, and any other important details.</p>
-                </div>
 
                 <div class="form-actions">
                     <a href="{% url 'seller_products' %}" class="btn btn-secondary">
@@ -588,22 +596,52 @@
             }
         });
 
-        // Form validation feedback
+        // Form validation feedback and auto-calculation
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
+            const weightInput = document.getElementById('weight_kg');
+            const priceInput = document.getElementById('price_per_kg');
+            const totalPriceInput = document.getElementById('total_price');
+            
+            // Auto-calculate total price
+            function calculateTotalPrice() {
+                const weight = parseFloat(weightInput.value) || 0;
+                const pricePerKg = parseFloat(priceInput.value) || 0;
+                const totalPrice = weight * pricePerKg;
+                
+                if (totalPrice > 0) {
+                    totalPriceInput.value = totalPrice.toFixed(2);
+                }
+            }
+            
+            // Add event listeners for auto-calculation
+            if (weightInput && priceInput && totalPriceInput) {
+                weightInput.addEventListener('input', calculateTotalPrice);
+                priceInput.addEventListener('input', calculateTotalPrice);
+            }
             
             if (form) {
                 form.addEventListener('submit', function(e) {
                     // Basic client-side validation
                     const name = document.getElementById('name').value.trim();
                     const category = document.getElementById('category').value;
+                    const weight = document.getElementById('weight_kg').value.trim();
                     const price = document.getElementById('price_per_kg').value.trim();
-                    const stock = document.getElementById('stock_kg').value.trim();
+                    const totalPrice = document.getElementById('total_price').value.trim();
+                    const datePurchased = document.getElementById('date_purchased').value;
                     
                     // Validate required fields
-                    if (!name || !category || !price || !stock) {
+                    if (!name || !category || !weight || !price || !totalPrice || !datePurchased) {
                         e.preventDefault();
-                        alert('Please fill in all required fields: Fish Name, Category, Price, and Stock.');
+                        alert('Please fill in all required fields: Fish Name, Category, Weight, Price per kg, Total Price, and Date Purchased.');
+                        return false;
+                    }
+                    
+                    // Validate weight
+                    const weightNum = parseFloat(weight);
+                    if (isNaN(weightNum) || weightNum <= 0) {
+                        e.preventDefault();
+                        alert('Weight must be a valid number greater than 0.');
                         return false;
                     }
                     
@@ -611,15 +649,15 @@
                     const priceNum = parseFloat(price);
                     if (isNaN(priceNum) || priceNum <= 0) {
                         e.preventDefault();
-                        alert('Price must be a valid number greater than 0.');
+                        alert('Price per kg must be a valid number greater than 0.');
                         return false;
                     }
                     
-                    // Validate stock
-                    const stockNum = parseFloat(stock);
-                    if (isNaN(stockNum) || stockNum < 0) {
+                    // Validate total price
+                    const totalPriceNum = parseFloat(totalPrice);
+                    if (isNaN(totalPriceNum) || totalPriceNum <= 0) {
                         e.preventDefault();
-                        alert('Stock must be a valid number (0 or greater).');
+                        alert('Total Price must be a valid number greater than 0.');
                         return false;
                     }
                     

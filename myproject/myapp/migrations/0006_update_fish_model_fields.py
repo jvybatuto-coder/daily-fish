@@ -3,6 +3,7 @@
 from django.db import migrations, models
 import django.db.models.deletion
 import django.core.validators
+from decimal import Decimal
 
 
 class Migration(migrations.Migration):
@@ -35,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='fish',
             name='total_price',
-            field=models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0.01'))]),
+            field=models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0.00'))]),
         ),
         migrations.AddField(
             model_name='fish',

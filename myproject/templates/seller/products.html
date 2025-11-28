@@ -597,10 +597,6 @@
                     <i class="fas fa-fish"></i>
                     <span>Products</span>
                 </a>
-                <a href="{% url 'seller_product_create' %}" class="nav-link {% if request.resolver_match.url_name == 'seller_product_create' %}active{% endif %}">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Add New Fish</span>
-                </a>
                 <a href="{% url 'seller_orders' %}" class="nav-link {% if 'orders' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Orders</span>
@@ -701,10 +697,7 @@
                     </div>
                     <h3 style="color: #555; margin-bottom: 0.5rem;">No Products Yet</h3>
                     <p style="color: #888; margin-bottom: 1.5rem;">You haven't added any fish to your store yet.</p>
-                    <a href="{% url 'seller_product_create' %}" class="btn-primary">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Add Your First Fish</span>
-                    </a>
+                    <p style="color: #666; font-size: 0.9rem;">Contact administrator to add products to your store.</p>
                 </div>
             {% endif %}
         </section>

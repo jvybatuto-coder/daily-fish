@@ -26,7 +26,6 @@ urlpatterns = [
     # Seller / Admin Panel (DailyFish)
     path('seller/dashboard/', views.seller_dashboard, name='seller_dashboard'),
     path('seller/products/', views.seller_products, name='seller_products'),
-    path('seller/products/new/', views.seller_product_create, name='seller_product_create'),
     path('seller/products/<int:fish_id>/edit/', views.seller_product_edit, name='seller_product_edit'),
     path('seller/products/<int:fish_id>/delete/', views.seller_product_delete, name='seller_product_delete'),
     path('seller/orders/', views.seller_orders, name='seller_orders'),

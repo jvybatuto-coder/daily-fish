@@ -1454,14 +1454,16 @@ def seller_product_edit(request, fish_id):
 
     if request.method == 'POST':
         name = (request.POST.get('name') or '').strip()
-        description = (request.POST.get('description') or '').strip()
         category_id = request.POST.get('category')
+        weight_raw = (request.POST.get('weight_kg') or '').strip()
         price_raw = (request.POST.get('price_per_kg') or '').strip()
+        total_price_raw = (request.POST.get('total_price') or '').strip()
+        date_purchased_raw = (request.POST.get('date_purchased') or '').strip()
         stock_raw = (request.POST.get('stock_kg') or '').strip()
         image = request.FILES.get('image')
         image_url = (request.POST.get('image_url') or '').strip()
 
-        if not name or not category_id or not price_raw or not stock_raw:
+        if not name or not category_id or not price_raw or not stock_raw or not weight_raw or not total_price_raw or not date_purchased_raw:
             messages.error(request, 'Please fill in all required fields for the fish.')
             return render(request, 'seller/product_form.html', context)
         
@@ -1492,6 +1494,34 @@ def seller_product_edit(request, fish_id):
             except (InvalidOperation, ValueError):
                 messages.error(request, 'Please enter a valid stock number.')
                 return render(request, 'seller/product_form.html', context)
+            
+            # Validate weight
+            try:
+                weight = Decimal(weight_raw)
+                if weight <= 0:
+                    messages.error(request, 'Weight must be greater than 0.')
+                    return render(request, 'seller/product_form.html', context)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid weight number.')
+                return render(request, 'seller/product_form.html', context)
+            
+            # Validate total price
+            try:
+                total_price = Decimal(total_price_raw)
+                if total_price <= 0:
+                    messages.error(request, 'Total price must be greater than 0.')
+                    return render(request, 'seller/product_form.html', context)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid total price number.')
+                return render(request, 'seller/product_form.html', context)
+            
+            # Validate date purchased
+            try:
+                from datetime import datetime
+                date_purchased = datetime.strptime(date_purchased_raw, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, 'Please enter a valid date.')
+                return render(request, 'seller/product_form.html', context)
                 
         except Exception as e:
             messages.error(request, f'An error occurred: {str(e)}')
@@ -1499,9 +1529,11 @@ def seller_product_edit(request, fish_id):
 
         # If all validation passed, update the fish
         fish.name = name
-        fish.description = description
         fish.category = category
         fish.price_per_kg = price
+        fish.weight_kg = weight
+        fish.total_price = total_price
+        fish.date_purchased = date_purchased
         fish.stock_kg = stock
 
         if image:

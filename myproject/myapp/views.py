@@ -145,6 +145,11 @@ def home(request):
     cache_key = f'home_page_{request.user.id}'
     cached_response = cache.get(cache_key)
 
+    # Clear cache if requested
+    if request.GET.get('clear_cache'):
+        cache.delete(cache_key)
+        cached_response = None
+
     # Return cached response if available
     if cached_response is not None and not request.GET.get('refresh'):
         return cached_response
@@ -152,24 +157,40 @@ def home(request):
     try:
         with transaction.atomic():
             # Get featured fish with related data in a single query
-            featured_fish = (
-                Fish.objects.select_related('category')
-                .filter(is_available=True, stock_kg__gt=0)
-                .order_by('-created_at')[:6]
-            )
+            # Handle potential database errors from new fields
+            try:
+                featured_fish = (
+                    Fish.objects.select_related('category')
+                    .filter(is_available=True, stock_kg__gt=0)
+                    .exclude(weight_kg__isnull=True)
+                    .exclude(total_price__isnull=True)
+                    .exclude(date_purchased__isnull=True)
+                    .order_by('-created_at')[:6]
+                )
+            except Exception as e:
+                # If query fails due to missing fields, try without the new field filters
+                featured_fish = (
+                    Fish.objects.select_related('category')
+                    .filter(is_available=True, stock_kg__gt=0)
+                    .order_by('-created_at')[:6]
+                )
 
             # Get categories with fish count
-            categories = (
-                FishCategory.objects.annotate(
-                    fish_count=Count(
-                        'fish',
-                        filter=Q(fish__is_available=True) & Q(fish__stock_kg__gt=0),
-                        distinct=True,
+            try:
+                categories = (
+                    FishCategory.objects.annotate(
+                        fish_count=Count(
+                            'fish',
+                            filter=Q(fish__is_available=True) & Q(fish__stock_kg__gt=0),
+                            distinct=True,
+                        )
                     )
+                    .filter(fish_count__gt=0)
+                    .order_by('name')[:4]
                 )
-                .filter(fish_count__gt=0)
-                .order_by('name')[:4]
-            )
+            except Exception as e:
+                # Fallback to basic categories query
+                categories = FishCategory.objects.all()[:4]
 
             context = {
                 'featured_fish': list(featured_fish),  # Force evaluation of queryset

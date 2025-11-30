@@ -509,6 +509,21 @@
                 sidebar.classList.remove('active');
             }
         });
+        
+        // Auto-hide notifications after 2 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifications = document.querySelectorAll('.notification');
+            notifications.forEach(notification => {
+                setTimeout(() => {
+                    notification.classList.add('fade-out');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 2000);
+            });
+        });
     </script>
 </body>
 </html>

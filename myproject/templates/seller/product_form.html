@@ -512,13 +512,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="total_price">Total Price</label>
+                        <label for="total_price">Total Price (Optional)</label>
                         <div style="position: relative;">
                             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;">₱</span>
-                            <input type="number" step="0.01" min="0" id="total_price" name="total_price" value="{{ fish.total_price|default:'' }}" required 
+                            <input type="number" step="0.01" min="0" id="total_price" name="total_price" value="{{ fish.total_price|default:'' }}" 
                                    style="padding-left: 30px;">
                         </div>
-                        <p class="field-help">Automatically calculated or manually added</p>
+                        <p class="field-help">Will be auto-calculated from weight × price if left blank</p>
                     </div>
 
                     <div class="form-group">
@@ -594,6 +594,19 @@
 
         // Form validation feedback and auto-calculation
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide notifications after 2 seconds
+            const notifications = document.querySelectorAll('.notification');
+            notifications.forEach(notification => {
+                setTimeout(() => {
+                    notification.classList.add('fade-out');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 2000);
+            });
+
             const form = document.querySelector('form');
             const weightInput = document.getElementById('weight_kg');
             const priceInput = document.getElementById('price_per_kg');
@@ -627,9 +640,9 @@
                     const datePurchased = document.getElementById('date_purchased').value;
                     
                     // Validate required fields
-                    if (!name || !category || !weight || !price || !totalPrice || !datePurchased) {
+                    if (!name || !category || !weight || !price || !datePurchased) {
                         e.preventDefault();
-                        alert('Please fill in all required fields: Fish Name, Category, Weight, Price per kg, Total Price, and Date Purchased.');
+                        alert('Please fill in all required fields: Fish Name, Category, Weight, Price per kg, and Date Purchased.');
                         return false;
                     }
                     
@@ -649,12 +662,14 @@
                         return false;
                     }
                     
-                    // Validate total price
-                    const totalPriceNum = parseFloat(totalPrice);
-                    if (isNaN(totalPriceNum) || totalPriceNum <= 0) {
-                        e.preventDefault();
-                        alert('Total Price must be a valid number greater than 0.');
-                        return false;
+                    // Validate optional total price if provided
+                    if (totalPrice) {
+                        const totalPriceNum = parseFloat(totalPrice);
+                        if (isNaN(totalPriceNum) || totalPriceNum <= 0) {
+                            e.preventDefault();
+                            alert('Total Price must be a valid number greater than 0 if provided.');
+                            return false;
+                        }
                     }
                     
                     return true;

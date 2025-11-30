@@ -1454,6 +1454,125 @@ def seller_products(request):
 
 
 @login_required
+def seller_product_add(request):
+    """Add a new fish product for the current DailyFish seller."""
+    if not request.user.is_staff:
+        return redirect('home')
+
+    categories = FishCategory.objects.all()
+
+    context = {
+        'seller_name': request.user.username,
+        'categories': categories,
+        'mode': 'add',
+    }
+
+    if request.method == 'POST':
+        name = (request.POST.get('name') or '').strip()
+        category_id = request.POST.get('category')
+        weight_raw = (request.POST.get('weight_kg') or '').strip()
+        price_raw = (request.POST.get('price_per_kg') or '').strip()
+        total_price_raw = (request.POST.get('total_price') or '').strip()
+        date_purchased_raw = (request.POST.get('date_purchased') or '').strip()
+        stock_raw = (request.POST.get('stock_kg') or '').strip()
+        image = request.FILES.get('image')
+        image_url = (request.POST.get('image_url') or '').strip()
+
+        if not name or not category_id or not price_raw or not stock_raw or not weight_raw or not date_purchased_raw:
+            messages.error(request, 'Please fill in all required fields: Fish Name, Category, Weight, Price per kg, Stock, and Date Purchased.')
+            return render(request, 'seller/product_form.html', context)
+        
+        try:
+            # Simple category validation
+            try:
+                category = FishCategory.objects.get(name=category_id)
+            except FishCategory.DoesNotExist:
+                messages.error(request, 'Please choose from the dropdown options.')
+                return render(request, 'seller/product_form.html', context)
+            
+            # Validate price
+            try:
+                price = Decimal(price_raw)
+                if price <= 0:
+                    messages.error(request, 'Price must be greater than 0.')
+                    return render(request, 'seller/product_form.html', context)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid price number.')
+                return render(request, 'seller/product_form.html', context)
+            
+            # Validate stock
+            try:
+                stock = Decimal(stock_raw)
+                if stock < 0:
+                    messages.error(request, 'Stock cannot be negative.')
+                    return render(request, 'seller/product_form.html', context)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid stock number.')
+                return render(request, 'seller/product_form.html', context)
+            
+            # Validate weight
+            try:
+                weight = Decimal(weight_raw)
+                if weight <= 0:
+                    messages.error(request, 'Weight must be greater than 0.')
+                    return render(request, 'seller/product_form.html', context)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid weight number.')
+                return render(request, 'seller/product_form.html', context)
+            
+            # Validate total price (optional - will be auto-calculated if not provided)
+            if total_price_raw:
+                try:
+                    total_price = Decimal(total_price_raw)
+                    if total_price <= 0:
+                        messages.error(request, 'Total price must be greater than 0.')
+                        return render(request, 'seller/product_form.html', context)
+                except (InvalidOperation, ValueError):
+                    messages.error(request, 'Please enter a valid total price number.')
+                    return render(request, 'seller/product_form.html', context)
+            else:
+                # Auto-calculate total price from weight * price
+                total_price = weight * price
+            
+            # Validate date purchased
+            try:
+                from datetime import datetime
+                date_purchased = datetime.strptime(date_purchased_raw, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, 'Please enter a valid date.')
+                return render(request, 'seller/product_form.html', context)
+                
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+            return render(request, 'seller/product_form.html', context)
+
+        # If all validation passed, create the fish
+        fish = Fish.objects.create(
+            name=name,
+            category=category,
+            seller=request.user,
+            price_per_kg=price,
+            weight_kg=weight,
+            total_price=total_price,
+            date_purchased=date_purchased,
+            stock_kg=stock,
+            description=f"Fresh {name} from {request.user.username}"
+        )
+
+        if image:
+            fish.image = image
+            fish.image_url = ''
+        elif image_url:
+            fish.image_url = image_url
+
+        fish.save()
+        messages.success(request, f'New fish product "{fish.name}" has been added successfully.')
+        return redirect('seller_products')
+
+    return render(request, 'seller/product_form.html', context)
+
+
+@login_required
 def seller_product_edit(request, fish_id):
     """Edit an existing fish product owned by the current DailyFish seller."""
     if not request.user.is_staff:

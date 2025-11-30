@@ -620,6 +620,10 @@
                 <h1 class="seller-title">Manage Products</h1>
                 <p class="seller-subtitle">Add, edit, or remove fish products. Buyers will only see active products; tracking dates are only visible here for sellers.</p>
             </div>
+            <a href="{% url 'seller_product_add' %}" class="btn-primary">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add New Product</span>
+            </a>
         </header>
 
         <section class="table-wrapper">
@@ -697,7 +701,10 @@
                     </div>
                     <h3 style="color: #555; margin-bottom: 0.5rem;">No Products Yet</h3>
                     <p style="color: #888; margin-bottom: 1.5rem;">You haven't added any fish to your store yet.</p>
-                    <p style="color: #666; font-size: 0.9rem;">Contact administrator to add products to your store.</p>
+                    <a href="{% url 'seller_product_add' %}" class="btn-primary">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Your First Product</span>
+                    </a>
                 </div>
             {% endif %}
         </section>

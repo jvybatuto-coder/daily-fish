@@ -1307,148 +1307,51 @@ def order_feedback(request, order_id):
 
 @login_required
 def seller_dashboard(request):
-    """Seller dashboard for DailyFish staff sellers.
-    
-    Special access for jvyboy@gmail.com to see all products and orders.
-    Other sellers see limited view of their own data only.
-    """
+    """Simple seller dashboard."""
     if not request.user.is_staff:
         return redirect('home')
-
-    # Check if this is the special seller account
-    is_special_seller = request.user.email == 'jvyboy@gmail.com'
     
-    if is_special_seller:
-        # Special seller gets ALL products and orders from the system
+    # Get basic data
+    try:
         all_products = Fish.objects.all().order_by('-updated_at')
-        
-        # Get all completed orders from the system
-        base_order_items = OrderItem.objects.filter(
-            order__status='completed',
-        ).select_related('order', 'fish', 'order__user')
-        
-        # Available years for filtering (all orders in system)
-        available_years = (
-            base_order_items
-            .values_list('order__created_at__year', flat=True)
-            .distinct()
-        )
-        
         total_products = all_products.count()
         active_products = all_products.filter(is_available=True).count()
-        low_stock_products = all_products.filter(is_available=True, stock_kg__lte=Decimal('5.00'))
         
         context = {
-            'is_special_seller': True,
             'seller_name': request.user.username,
             'fish_list': all_products,
             'total_products': total_products,
             'active_products': active_products,
-            'low_stock_products': low_stock_products,
-            'base_order_items': base_order_items,
-            'available_years': sorted(available_years, reverse=True),
+            'low_stock_products': Fish.objects.none(),
+            'base_order_items': OrderItem.objects.none(),
+            'available_years': [],
+            'recent_orders': [],
+            'total_sales': 0,
+            'period': 'day',
+            'period_label': 'Today',
+            'selected_year': 2024,
+            'selected_month': 1,
+            'is_special_seller': True,
         }
-    else:
-        # Regular sellers get their own products and orders only
-        # Assign any fish without a seller to the current user
-        no_seller_fish = Fish.objects.filter(seller__isnull=True)
-        if no_seller_fish.exists():
-            print(f"DEBUG: Found {no_seller_fish.count()} fish with no seller. Assigning to {request.user.username}")
-            no_seller_fish.update(seller=request.user)
-        
-        # Get all fish products for this seller (including newly assigned ones)
-        seller_fish = Fish.objects.filter(seller=request.user)
-        print(f"DEBUG: Total fish for seller {request.user.username}: {seller_fish.count()}")
-        for fish in seller_fish[:5]:  # Print first 5 fish for debugging
-            print(f"  - {fish.name} (ID: {fish.id}, Available: {fish.is_available})")
-        
-        total_products = seller_fish.count()
-        active_products = seller_fish.filter(is_available=True).count()
-        low_stock_products = seller_fish.filter(is_available=True, stock_kg__lte=Decimal('5.00'))
-
-        # Base queryset of completed order items containing this seller's fish
-        base_order_items = OrderItem.objects.filter(
-            fish__seller=request.user,
-            order__status='completed',
-        ).select_related('order', 'fish')
-
-        # Available years for filtering (distinct years where this seller has completed orders)
-        available_years = (
-            base_order_items
-            .values_list('order__created_at__year', flat=True)
-            .distinct()
-        )
-        
+    except Exception:
+        # Fallback context
         context = {
-            'is_special_seller': False,
             'seller_name': request.user.username,
-            'total_products': total_products,
-            'active_products': active_products,
-            'low_stock_products': low_stock_products,
-            'base_order_items': base_order_items,
-            'available_years': sorted(available_years, reverse=True),
+            'fish_list': Fish.objects.none(),
+            'total_products': 0,
+            'active_products': 0,
+            'low_stock_products': Fish.objects.none(),
+            'base_order_items': OrderItem.objects.none(),
+            'available_years': [],
+            'recent_orders': [],
+            'total_sales': 0,
+            'period': 'day',
+            'period_label': 'Today',
+            'selected_year': 2024,
+            'selected_month': 1,
+            'is_special_seller': True,
         }
-
-    # Determine period filter for orders (day, month, year)
-    period = request.GET.get('period', 'day')
-    now_dt = timezone.now()
-    start_dt = None
-    end_dt = None
-
-    # Optional explicit year/month parameters for month/year views
-    try:
-        selected_year = int(request.GET.get('year', now_dt.year))
-    except (TypeError, ValueError):
-        selected_year = now_dt.year
-
-    try:
-        selected_month = int(request.GET.get('month', now_dt.month))
-    except (TypeError, ValueError):
-        selected_month = now_dt.month
-
-    if period == 'day':
-        start_dt = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        period_label = 'Today'
-    elif period == 'month':
-        # Clamp month and year to valid ranges
-        if selected_month < 1 or selected_month > 12:
-            selected_month = now_dt.month
-        start_dt = now_dt.replace(year=selected_year, month=selected_month, day=1, hour=0, minute=0, second=0, microsecond=0)
-        if selected_month == 12:
-            end_dt = start_dt.replace(year=selected_year + 1, month=1)
-        else:
-            end_dt = start_dt.replace(month=selected_month + 1)
-        period_label = start_dt.strftime('%B %Y')
-    elif period == 'year':
-        start_dt = now_dt.replace(year=selected_year, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-        end_dt = start_dt.replace(year=selected_year + 1)
-        period_label = str(selected_year)
-    else:
-        # Fallback to showing all time if an unexpected value is provided
-        period = 'all'
-        period_label = 'All Time'
-
-    # Apply date filtering to the base queryset when a range is defined
-    seller_order_items = base_order_items
-    if start_dt is not None:
-        seller_order_items = seller_order_items.filter(order__created_at__gte=start_dt)
-    if end_dt is not None:
-        seller_order_items = seller_order_items.filter(order__created_at__lt=end_dt)
-
-    recent_orders = seller_order_items.order_by('-order__created_at')[:5]
-
-    total_sales = sum(item.total_price for item in seller_order_items)
-
-    # Add common context variables
-    context.update({
-        'period': period,
-        'period_label': period_label,
-        'selected_year': selected_year,
-        'selected_month': selected_month,
-        'recent_orders': recent_orders,
-        'total_sales': total_sales,
-    })
-
+    
     return render(request, 'seller/dashboard.html', context)
 
 

@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import django.core.validators
+from decimal import Decimal
 
 
 class Migration(migrations.Migration):

@@ -608,16 +608,16 @@
         <div class="interactive"></div>
         <div class="interactive"></div>
     </div>
-    <div id="notification-container" class="notification-container"></div>
-    
-    <!-- Django Messages Display -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="notification {% if message.tags == 'error' %}error{% else %}success{% endif %}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+    <div id="notification-container" class="notification-container">
+        <!-- Django Messages Display -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="notification {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
     
     <div class="form-container">
         <div class="login-header">

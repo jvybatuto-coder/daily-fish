@@ -68,8 +68,8 @@ class PaymentError(DailyFishException):
 def landing_page(request):
     """Landing page view that shows before user logs in."""
     if request.user.is_authenticated:
-        # Authenticated users should go to the marketplace
-        return redirect('marketplace')
+        # Authenticated users should go to the fish list (marketplace)
+        return redirect('fish_list')
     return render(request, 'landing.html')
 
 # Utility functions
@@ -503,46 +503,57 @@ def buyer_dashboard(request):
 
 
 
-@login_required
 def fish_list(request):
-    # Get search and filter parameters
-    search_query = request.GET.get('search', '')
-    category_id = request.GET.get('category', '')
+    try:
+        # Get search and filter parameters
+        search_query = request.GET.get('search', '')
+        category_id = request.GET.get('category', '')
+        
+        # Start with all available fish
+        fish_items = Fish.objects.filter(is_available=True)
+        
+        # Apply search filter
+        if search_query:
+            fish_items = fish_items.filter(
+                Q(name__icontains=search_query) | 
+                Q(name__icontains=search_query)
+            )
+        
+        # Apply category filter
+        if category_id:
+            fish_items = fish_items.filter(category_id=category_id)
+        
+        # Apply a consistent default ordering without exposing sorting controls
+        fish_items = fish_items.order_by('name')
+        
+        # Pagination
+        paginator = Paginator(fish_items, 12)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        # Get categories for filter dropdown
+        categories = FishCategory.objects.all()
+        
+        context = {
+            'page_obj': page_obj,
+            'fish_items': page_obj,
+            'categories': categories,
+            'search_query': search_query,
+            'selected_category': category_id,
+            # sorting removed from UI; keep ordering internal only
+        }
+        return render(request, 'fish_list.html', context)
     
-    # Start with all available fish
-    fish_items = Fish.objects.filter(is_available=True)
-    
-    # Apply search filter
-    if search_query:
-        fish_items = fish_items.filter(
-            Q(name__icontains=search_query) | 
-            Q(name__icontains=search_query)
+    except Exception as e:
+        logger.error(f"Error in fish_list: {str(e)}\n{traceback.format_exc()}")
+        if settings.DEBUG:
+            raise
+        return render(
+            request,
+            'error.html',
+            {'error': 'There was an error loading the fish catalog. Please try again.'},
+            status=500,
         )
-    
-    # Apply category filter
-    if category_id:
-        fish_items = fish_items.filter(category_id=category_id)
-    
-    # Apply a consistent default ordering without exposing sorting controls
-    fish_items = fish_items.order_by('name')
-    
-    # Pagination
-    paginator = Paginator(fish_items, 12)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    # Get categories for filter dropdown
-    categories = FishCategory.objects.all()
-    
-    context = {
-        'page_obj': page_obj,
-        'fish_items': page_obj,
-        'categories': categories,
-        'search_query': search_query,
-        'selected_category': category_id,
-        # sorting removed from UI; keep ordering internal only
-    }
-    return render(request, 'fish_list.html', context)
 
 @login_required
 def fish_detail(request, fish_id):
@@ -692,14 +703,25 @@ def add_to_cart(request, fish_id):
 
 @login_required
 def cart_view(request):
-    cart, created = Cart.objects.get_or_create(user=request.user)
-    cart_items = cart.items.all()
-    
-    context = {
-        'cart': cart,
-        'cart_items': cart_items,
-    }
-    return render(request, 'cart.html', context)
+    try:
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart_items = cart.items.all()
+        
+        context = {
+            'cart': cart,
+            'cart_items': cart_items,
+        }
+        return render(request, 'cart.html', context)
+    except Exception as e:
+        logger.error(f"Error in cart_view: {str(e)}\n{traceback.format_exc()}")
+        if settings.DEBUG:
+            raise
+        return render(
+            request,
+            'error.html',
+            {'error': 'There was an error loading your cart. Please try again.'},
+            status=500,
+        )
 
 @login_required
 def update_cart_item(request, item_id):

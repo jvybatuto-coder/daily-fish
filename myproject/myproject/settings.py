@@ -24,10 +24,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-5ljr(^p7p^+jd_k4rsq8yd5d)arn6$t@zhvwm#@vs6i%t@-#_*')
 
+# Ensure SECRET_KEY is set in production
+if not DEBUG and not os.environ.get('SECRET_KEY'):
+    raise ValueError("No SECRET_KEY set for production. Please set the SECRET_KEY environment variable.")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# For production, ensure we have proper hosts
+if not DEBUG:
+    # In production, allow the Render host and any custom domains
+    render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
+    custom_hosts = os.environ.get('ALLOWED_HOSTS', '')
+    all_hosts = []
+    
+    if render_host:
+        all_hosts.append(render_host)
+    if custom_hosts:
+        all_hosts.extend(custom_hosts.split(','))
+    
+    # Fallback to common patterns if no hosts are specified
+    if not all_hosts:
+        all_hosts = ['.onrender.com', 'localhost', '127.0.0.1']
+    
+    ALLOWED_HOSTS = all_hosts
 
 
 # Application definition
